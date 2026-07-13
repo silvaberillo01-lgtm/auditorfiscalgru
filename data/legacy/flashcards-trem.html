@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101418">
+<title>Flashcards · Auditor Fiscal Guarulhos</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{background:#101418;color:#E8E4DA;font-family:Georgia,'Times New Roman',serif;min-height:100vh;display:flex;flex-direction:column;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+  header{padding:14px 16px 10px;border-bottom:1px solid #2E3B48;position:sticky;top:0;background:#101418;z-index:10}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  h1{font-size:15px;color:#F5F1E6;font-weight:700}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .sub{font-size:11px;color:#7C8894;margin-top:2px}
+  select{background:#1B2530;color:#E8E4DA;border:1px solid #2E3B48;border-radius:8px;padding:7px 10px;font-size:13px;max-width:100%}
+  .bar{height:4px;background:#1B2530;border-radius:99px;overflow:hidden;margin-top:10px}
+  .bar > div{height:100%;background:#4E8FD9;width:0%;transition:width .3s}
+  main{flex:1;display:flex;flex-direction:column;justify-content:center;padding:20px 16px}
+  .card{background:#1B2530;border:1px solid #2E3B48;border-radius:16px;padding:26px 20px;min-height:260px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;position:relative}
+  .tag{position:absolute;top:12px;left:16px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8FA3B8}
+  .peso{position:absolute;top:12px;right:16px;font-size:10px;padding:2px 7px;border-radius:99px;background:#22303C;color:#5E9E6F}
+  .q{font-size:19px;line-height:1.5;color:#F5F1E6;text-align:center}
+  .a{font-size:16px;line-height:1.6;color:#C4CDD5;text-align:left;border-top:1px solid #2E3B48;margin-top:18px;padding-top:16px}
+  .a strong{color:#5E9E6F}
+  .hint{text-align:center;font-size:11px;color:#5C6874;margin-top:14px}
+  .grade{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px}
+  button{border:none;border-radius:12px;padding:15px 8px;font-size:14px;font-weight:700;font-family:ui-monospace,monospace;cursor:pointer;color:#0D1116}
+  .g0{background:#D9704E}.g1{background:#D9A84E}.g2{background:#5E9E6F}
+  .bsm{font-size:10px;font-weight:400;display:block;opacity:.8;margin-top:2px;color:#0D1116}
+  footer{padding:12px 16px;border-top:1px solid #2E3B48;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .ghost{background:transparent;color:#7C8894;border:1px solid #2E3B48;padding:8px 12px;font-size:12px}
+  .stat{font-size:11px;color:#7C8894}
+  .done{text-align:center;padding:40px 20px}
+  .done h2{color:#5E9E6F;font-size:22px;margin-bottom:10px}
+  .done p{color:#A8B4BE;font-size:14px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="row">
+    <div>
+      <h1>Flashcards · Auditor Fiscal VI</h1>
+      <div class="sub mono" id="sub">Guarulhos · IBAM · 13/09</div>
+    </div>
+    <select id="filtro"></select>
+  </div>
+  <div class="bar"><div id="prog"></div></div>
+</header>
+
+<main id="main">
+  <div class="card" id="card" onclick="virar()">
+    <span class="tag mono" id="tag"></span>
+    <span class="peso mono" id="pesoTag"></span>
+    <div class="q" id="pergunta"></div>
+    <div class="a" id="resposta" style="display:none"></div>
+    <div class="hint" id="hint">toque para ver a resposta</div>
+  </div>
+  <div class="grade" id="grade" style="display:none">
+    <button class="g0" onclick="responder(0)">Errei<span class="bsm">rever já</span></button>
+    <button class="g1" onclick="responder(1)">Difícil<span class="bsm">rever logo</span></button>
+    <button class="g2" onclick="responder(2)">Sei<span class="bsm">espaçar</span></button>
+  </div>
+</main>
+
+<footer>
+  <span class="stat mono" id="stat"></span>
+  <button class="ghost" onclick="zerar()">Zerar progresso</button>
+</footer>
+
+<script>
+// ====== BANCO DE FLASHCARDS ======
+// Extraídos dos resumos-teoria e das leis reais de Guarulhos.
+const CARDS = [
+  // ---------- LEGISLAÇÃO MUNICIPAL (peso 3) ----------
+  {m:"Legislação Municipal",p:3,q:"ISS Guarulhos: qual a ALÍQUOTA MÍNIMA?",a:"<strong>2%</strong> (art. 13-A da Lei 5.986/2003, em linha com o art. 8º-A da LC 116/2003)."},
+  {m:"Legislação Municipal",p:3,q:"ISS: quem é o CONTRIBUINTE?",a:"O <strong>PRESTADOR</strong> do serviço (art. 8º). O tomador pode ser responsável solidário, mas não é o contribuinte."},
+  {m:"Legislação Municipal",p:3,q:"ISS: qual a BASE DE CÁLCULO?",a:"O <strong>preço do serviço</strong> (art. 10)."},
+  {m:"Legislação Municipal",p:3,q:"ISS: em regra, onde o imposto é devido?",a:"No local do <strong>estabelecimento prestador</strong> (art. 5º); na falta, o domicílio do prestador. As exceções legais recolhem no local da prestação."},
+  {m:"Legislação Municipal",p:3,q:"ISS: prestou serviços de várias alíquotas SEM escrituração que os separe. E aí?",a:"Aplica-se a <strong>alíquota MAIS ELEVADA</strong> dentre eles (art. 4º)."},
+  {m:"Legislação Municipal",p:3,q:"ISS: a solidariedade comporta benefício de ordem?",a:"<strong>NÃO</strong> (art. 9º, §2º) — mesma regra do art. 124, § único, do CTN."},
+  {m:"Legislação Municipal",p:3,q:"IPTU Guarulhos: alíquota do TERRENO não edificado?",a:"<strong>3,5%</strong> — a mais alta da lei, para desestimular especulação imobiliária (art. 26, §3º)."},
+  {m:"Legislação Municipal",p:3,q:"IPTU Guarulhos: faixas do RESIDENCIAL (progressivas)?",a:"<strong>0,3%</strong> até 10 mil UFG · <strong>0,5%</strong> 10–20 mil · <strong>0,8%</strong> 20–40 mil · <strong>1,0%</strong> 40–60 mil · <strong>1,4%</strong> acima de 60 mil."},
+  {m:"Legislação Municipal",p:3,q:"IPTU: quem é contribuinte?",a:"O <strong>proprietário</strong>, o titular do <strong>domínio útil</strong> OU o <strong>possuidor a qualquer título</strong> (art. 7º = art. 34 do CTN)."},
+  {m:"Legislação Municipal",p:3,q:"IPTU: base de cálculo e modalidade de lançamento?",a:"Base: <strong>valor venal</strong>. Lançamento: <strong>de ofício</strong> e anual, pelo Cadastro Fiscal Imobiliário (art. 9º e 27)."},
+  {m:"Legislação Municipal",p:3,q:"Contrato particular diz que o INQUILINO paga o IPTU. Vale contra a Prefeitura?",a:"<strong>NÃO.</strong> Acordos particulares não são oponíveis à Fazenda (art. 7º, §1º = art. 123 do CTN). O Fisco cobra do contribuinte legal."},
+  {m:"Legislação Municipal",p:3,q:"ITBI Guarulhos: qual a ALÍQUOTA?",a:"<strong>3,0%</strong> (art. 10 da Lei 8.425/2025)."},
+  {m:"Legislação Municipal",p:3,q:"ITBI: quando ocorre o FATO GERADOR?",a:"Com o <strong>REGISTRO</strong> do título translativo na matrícula do imóvel (art. 1º, §1º) — não na escritura, nem no compromisso. Alinhado ao STF, Tema 1124."},
+  {m:"Legislação Municipal",p:3,q:"ITBI: cite 3 hipóteses de NÃO INCIDÊNCIA.",a:"<strong>Retrovenda</strong>/retrocessão; <strong>integralização de capital</strong>; <strong>fusão, incorporação, cisão</strong> ou extinção de PJ (art. 3º)."},
+  {m:"Legislação Municipal",p:3,q:"ITBI: a imunidade da integralização de capital é absoluta?",a:"<strong>NÃO.</strong> Não se aplica se a atividade preponderante do adquirente for <strong>imobiliária</strong> (compra/venda, locação, arrendamento) — art. 4º = art. 156, §2º, I, CF."},
+  {m:"Legislação Municipal",p:3,q:"ITBI: reduções de base — usufruto, nua-propriedade, enfiteuse, domínio direto?",a:"Usufruto/uso <strong>1/3</strong> · nua-propriedade <strong>2/3</strong> · enfiteuse <strong>80%</strong> · domínio direto <strong>20%</strong> (art. 8º, VIII)."},
+
+  // ---------- PAT (peso 3) ----------
+  {m:"PAT (Processo Adm.)",p:3,q:"PAT Guarulhos: prazo para IMPUGNAR a exigência fiscal?",a:"<strong>30 dias</strong> da notificação/intimação, SEM depósito prévio (art. 43, redação da Lei 6.164/2006)."},
+  {m:"PAT (Processo Adm.)",p:3,q:"PAT: prazo do RECURSO voluntário à Junta?",a:"<strong>30 dias</strong> da ciência da decisão de 1ª instância (art. 53)."},
+  {m:"PAT (Processo Adm.)",p:3,q:"PAT: quem julga em 1ª e em 2ª instância?",a:"1ª: <strong>responsável pela unidade de finanças</strong>. 2ª: <strong>Junta de Recursos Fiscais</strong> (art. 36)."},
+  {m:"PAT (Processo Adm.)",p:3,q:"PAT: pagou em 30 dias SEM impugnar — reduz a multa em quanto?",a:"<strong>50%</strong> (art. 37, exceto multa moratória). Se pagar no prazo do recurso após decisão contrária: <strong>35%</strong> (art. 52)."},
+  {m:"PAT (Processo Adm.)",p:3,q:"PAT: cabe pedido de RECONSIDERAÇÃO?",a:"<strong>NÃO</strong> — não se admite reconsideração de qualquer decisão (art. 38)."},
+  {m:"PAT (Processo Adm.)",p:3,q:"PAT: prazo de resposta à CONSULTA tributária?",a:"<strong>20 dias</strong> (art. 27). Não cabe reconsideração nem recurso da resposta (art. 32)."},
+  {m:"PAT (Processo Adm.)",p:3,q:"PAT: quando há recurso DE OFÍCIO à Junta?",a:"Quando a decisão de 1ª instância <strong>exonera</strong> o contribuinte acima do valor legalmente fixado (art. 51) — é o reexame necessário."},
+  {m:"PAT (Processo Adm.)",p:3,q:"PAT: intimação por EDITAL presume-se feita quando?",a:"<strong>30 dias</strong> após a afixação/publicação (art. 5º, III). Por carta: na data do recebimento (ou 15 dias se omitida)."},
+
+  // ---------- DIREITO TRIBUTÁRIO (peso 2) ----------
+  {m:"Direito Tributário",p:2,q:"O que SUSPENDE a exigibilidade do crédito? (mnemônico)",a:"<strong>MORDER-LIMPAR</strong>: MORatória · DEpósito integral · Reclamações/Recursos · LIMinar · PARcelamento (art. 151)."},
+  {m:"Direito Tributário",p:2,q:"O que EXCLUI o crédito tributário?",a:"Só <strong>DUAS</strong>: <strong>ISENÇÃO</strong> e <strong>ANISTIA</strong> (art. 175). Todo o resto (remissão, prescrição, pagamento…) é EXTINÇÃO."},
+  {m:"Direito Tributário",p:2,q:"Pegadinha: REMISSÃO x ANISTIA — qual é qual?",a:"<strong>Remissão</strong> = perdão do crédito → <strong>EXTINÇÃO</strong>. <strong>Anistia</strong> = perdão da multa/infração → <strong>EXCLUSÃO</strong>."},
+  {m:"Direito Tributário",p:2,q:"DECADÊNCIA x PRESCRIÇÃO em tributário?",a:"Ambas 5 anos. <strong>Decadência</strong> = perde o direito de CONSTITUIR (lançar). <strong>Prescrição</strong> = perde o direito de COBRAR judicialmente."},
+  {m:"Direito Tributário",p:2,q:"Ordem da INTEGRAÇÃO da legislação tributária (art. 108)?",a:"<strong>A-T-P-E</strong>: Analogia → princípios de direito Tributário → princípios de direito Público → Equidade. Analogia não cria tributo; equidade não dispensa tributo devido."},
+  {m:"Direito Tributário",p:2,q:"As 3 modalidades de LANÇAMENTO e um exemplo de cada?",a:"<strong>Ofício</strong> (IPTU, taxas) · <strong>Declaração</strong> (ITBI em alguns municípios) · <strong>Homologação</strong> (ISS, ICMS, IR)."},
+  {m:"Direito Tributário",p:2,q:"COMPETÊNCIA x CAPACIDADE tributária ativa?",a:"<strong>Competência</strong> (instituir) é <strong>indelegável</strong> e irrenunciável. <strong>Capacidade ativa</strong> (arrecadar/fiscalizar) <strong>pode ser delegada</strong>. Não exercer não transfere."},
+  {m:"Direito Tributário",p:2,q:"O que define a NATUREZA JURÍDICA do tributo?",a:"O <strong>FATO GERADOR</strong> (art. 4º). São irrelevantes o NOME dado e a DESTINAÇÃO do dinheiro."},
+  {m:"Direito Tributário",p:2,q:"DENÚNCIA ESPONTÂNEA: o que é e o que exclui?",a:"Confessar + pagar tributo e juros <strong>ANTES</strong> de qualquer fiscalização → exclui a <strong>MULTA</strong> (art. 138). Se a ação fiscal já começou, perdeu."},
+  {m:"Direito Tributário",p:2,q:"ELISÃO x EVASÃO fiscal?",a:"<strong>Elisão</strong> = meios <strong>LÍCITOS</strong> (planejamento, em regra antes do fato gerador). <strong>Evasão</strong> = meios <strong>ILÍCITOS</strong> (fraude, simulação)."},
+  {m:"Direito Tributário",p:2,q:"Interpretação LITERAL da lei tributária: em quais casos? (art. 111)",a:"<strong>Suspensão</strong> e <strong>exclusão</strong> do crédito, <strong>isenção</strong> e dispensa de obrigações acessórias. Pegadinha: EXTINÇÃO não está no rol."},
+  {m:"Direito Tributário",p:2,q:"Crédito tributário sujeita-se a concurso de credores / habilitação em falência?",a:"<strong>NÃO</strong> (art. 187). A cobrança judicial não se sujeita a concurso nem a habilitação. Só perde para créditos trabalhistas/acidentários."},
+
+  // ---------- REFORMA TRIBUTÁRIA (peso 3) ----------
+  {m:"Reforma Tributária",p:3,q:"CBS e IBS substituem o quê, respectivamente?",a:"<strong>CBS</strong> (União) ← PIS + Cofins. <strong>IBS</strong> (Estados/DF/Municípios) ← ICMS + ISS."},
+  {m:"Reforma Tributária",p:3,q:"O IBS é cobrado na origem ou no destino?",a:"No <strong>DESTINO</strong> — onde o bem/serviço é consumido. Muda a lógica atual do ISS/ICMS (origem)."},
+  {m:"Reforma Tributária",p:3,q:"O que é o Comitê Gestor do IBS?",a:"Entidade sob <strong>regime especial</strong>, que NÃO integra nenhum ente. Funções: <strong>arrecadar, compensar créditos e distribuir</strong> a receita. Gestão compartilhada Estados/DF/Municípios."},
+  {m:"Reforma Tributária",p:3,q:"Linha do tempo da transição: 2026, 2027, 2033, 2078?",a:"<strong>2026</strong> teste · <strong>2027</strong> CBS plena (fim PIS/Cofins) · <strong>2033</strong> fim do ICMS e do ISS · <strong>2078</strong> fim da transição da repartição federativa."},
+  {m:"Reforma Tributária",p:3,q:"Imposto Seletivo (IS): sobre o quê e com que finalidade?",a:"Sobre bens/serviços <strong>prejudiciais à saúde ou ao meio ambiente</strong>. Finalidade <strong>EXTRAFISCAL</strong> (desestimular), não arrecadatória. Competência da União."},
+  {m:"Reforma Tributária",p:3,q:"Que tipo de não cumulatividade o IBS/CBS adota?",a:"<strong>PLENA</strong> — crédito sobre tudo em que houve incidência, salvo bens de <strong>uso e consumo pessoal</strong>."},
+  {m:"Reforma Tributária",p:3,q:"O que é o CASHBACK da reforma?",a:"Devolução de parte do IBS/CBS a <strong>famílias de baixa renda</strong>, para reduzir a <strong>regressividade</strong> do sistema. Cesta básica nacional tem alíquota ZERO."},
+  {m:"Reforma Tributária",p:3,q:"O IPTU e o ITBI mudam com a reforma?",a:"<strong>NÃO.</strong> Continuam municipais e intactos. A reforma extingue o ISS (junto com ICMS/PIS/Cofins), não os impostos sobre patrimônio."},
+
+  // ---------- CONTABILIDADE E AUDITORIA (peso 3) ----------
+  {m:"Contabilidade/Auditoria",p:3,q:"Indícios clássicos de OMISSÃO DE RECEITA na auditoria fiscal?",a:"<strong>Saldo credor de caixa</strong> (pagou mais do que tinha — impossível) e <strong>passivo fictício</strong> (dívidas falsas/já pagas mantidas na escrita)."},
+  {m:"Contabilidade/Auditoria",p:3,q:"Tipos de OPINIÃO do auditor — quando cada uma?",a:"<strong>Sem modificação</strong>: tudo ok. <strong>Com ressalva</strong>: distorção material, NÃO generalizada. <strong>Adversa</strong>: material E generalizada. <strong>Abstenção</strong>: não obteve evidência suficiente."},
+  {m:"Contabilidade/Auditoria",p:3,q:"Objetivo da AUDITORIA segundo as NBC?",a:"<strong>Aumentar o grau de confiança</strong> dos usuários nas demonstrações contábeis (NBC TA 200)."},
+  {m:"Contabilidade/Auditoria",p:3,q:"Regime de COMPETÊNCIA x regime de CAIXA?",a:"<strong>Competência</strong>: reconhece no período do fato gerador, independe do dinheiro. <strong>Caixa</strong>: só quando entra/sai o dinheiro."},
+  {m:"Contabilidade/Auditoria",p:3,q:"Fato PERMUTATIVO x MODIFICATIVO?",a:"<strong>Permutativo</strong>: troca elementos, NÃO altera o PL (compra à vista). <strong>Modificativo</strong>: altera o PL (receita/despesa)."},
+  {m:"Contabilidade/Auditoria",p:3,q:"Depreciação, Amortização e Exaustão: qual para quê?",a:"<strong>Depreciação</strong> = bens tangíveis. <strong>Amortização</strong> = intangíveis (vida útil definida). <strong>Exaustão</strong> = recursos naturais (jazidas, florestas). Terreno não deprecia."},
+  {m:"Contabilidade/Auditoria",p:3,q:"Equação patrimonial fundamental?",a:"<strong>ATIVO = PASSIVO + PATRIMÔNIO LÍQUIDO</strong>. Logo, PL = Ativo − Passivo exigível."},
+  {m:"Contabilidade/Auditoria",p:3,q:"O que é IMPAIRMENT (teste de recuperabilidade)?",a:"Reconhece <strong>perda</strong> quando o valor contábil do ativo <strong>supera</strong> o valor recuperável. Nunca aumenta o ativo acima do custo."},
+  {m:"Contabilidade/Auditoria",p:3,q:"Independência do auditor tem quantas dimensões?",a:"<strong>Duas</strong>: independência <strong>de fato</strong> (mental/pensamento) e <strong>de aparência</strong> (percepção de terceiros)."},
+
+  // ---------- DIREITO ADMINISTRATIVO (peso 2) ----------
+  {m:"Direito Administrativo",p:2,q:"ANULAÇÃO x REVOGAÇÃO: efeitos e motivo?",a:"<strong>Anulação</strong>: ilegalidade, efeitos <strong>EX TUNC</strong> (retroage), Adm. ou Judiciário. <strong>Revogação</strong>: conveniência, efeitos <strong>EX NUNC</strong>, só a Adm., só ato discricionário."},
+  {m:"Direito Administrativo",p:2,q:"Ato VINCULADO pode ser revogado?",a:"<strong>NÃO.</strong> Revogação pressupõe juízo de conveniência/oportunidade — exclusivo dos discricionários."},
+  {m:"Direito Administrativo",p:2,q:"Teoria da responsabilidade civil do Estado na CF?",a:"<strong>Risco ADMINISTRATIVO</strong> (art. 37, §6º): objetiva, mas <strong>admite excludentes</strong> (culpa exclusiva da vítima, força maior). NÃO é risco integral."},
+  {m:"Direito Administrativo",p:2,q:"CONVALIDAÇÃO: quais vícios podem ser sanados?",a:"<strong>Competência</strong> (não exclusiva) e <strong>forma</strong> (não essencial). Efeitos <strong>ex tunc</strong>. Vício de objeto, motivo ou finalidade NÃO se convalida."},
+  {m:"Direito Administrativo",p:2,q:"Atributos do PODER DE POLÍCIA?",a:"<strong>Discricionariedade</strong>, <strong>autoexecutoriedade</strong> e <strong>coercibilidade</strong>. Mas o lançamento tributário é atividade <strong>vinculada</strong> e indelegável a particular."},
+  {m:"Direito Administrativo",p:2,q:"Ato COMPLEXO x ato COMPOSTO?",a:"<strong>Complexo</strong>: vontades de órgãos <strong>diferentes</strong> que se fundem em um ato. <strong>Composto</strong>: ato principal + ato acessório (ratificação/aprovação)."},
+
+  // ---------- DIREITO CONSTITUCIONAL (peso 2) ----------
+  {m:"Direito Constitucional",p:2,q:"Limitações constitucionais ao poder de tributar (cite 5)",a:"<strong>Legalidade</strong>, <strong>Irretroatividade</strong>, <strong>Anterioridade</strong> (+ noventena), <strong>Isonomia</strong>, <strong>Não-confisco</strong>, liberdade de tráfego."},
+  {m:"Direito Constitucional",p:2,q:"Controle DIFUSO x CONCENTRADO: efeitos?",a:"<strong>Difuso</strong>: qualquer juiz, caso concreto, efeitos <strong>inter partes</strong>. <strong>Concentrado</strong> (ADI/ADC no STF): <strong>erga omnes</strong> e vinculante."},
+  {m:"Direito Constitucional",p:2,q:"Os Municípios integram a Federação?",a:"<strong>SIM</strong> (art. 18). São entes <strong>autônomos</strong>: autogoverno, autoadministração, autolegislação. Mas não têm Judiciário próprio."},
+  {m:"Direito Constitucional",p:2,q:"Eficácia das normas constitucionais: os 3 tipos?",a:"<strong>Plena</strong> (aplicação imediata e integral) · <strong>Contida</strong> (imediata, mas pode ser restringida por lei) · <strong>Limitada</strong> (depende de lei para produzir efeitos)."},
+  {m:"Direito Constitucional",p:2,q:"Quem pode propor MANDADO DE SEGURANÇA COLETIVO?",a:"<strong>Partido político</strong> com representação no Congresso; <strong>organização sindical</strong>, entidade de classe ou associação constituída há mais de 1 ano (art. 5º, LXX)."},
+
+  // ---------- PENAL / EMPRESARIAL (peso 2) ----------
+  {m:"Penal/Empresarial",p:2,q:"CONCUSSÃO x CORRUPÇÃO PASSIVA: qual o verbo de cada?",a:"<strong>Concussão</strong> (art. 316) = <strong>EXIGIR</strong> vantagem indevida. <strong>Corrupção passiva</strong> (art. 317) = <strong>SOLICITAR ou RECEBER</strong>."},
+  {m:"Penal/Empresarial",p:2,q:"Quem é 'funcionário público' para o Direito Penal?",a:"Conceito <strong>AMPLÍSSIMO</strong> (art. 327): qualquer um que exerça função pública, <strong>ainda que transitoriamente e sem remuneração</strong>. Não é só efetivo/comissionado."},
+  {m:"Penal/Empresarial",p:2,q:"Crimes contra a ordem tributária (Lei 8.137/90): o pagamento extingue a punibilidade?",a:"<strong>Sim</strong>, o pagamento integral pode extinguir a punibilidade. São crimes <strong>materiais</strong> (exigem supressão/redução efetiva do tributo)."},
+  {m:"Penal/Empresarial",p:2,q:"AVAL: pode ser dado em contrato?",a:"<strong>NÃO.</strong> Aval é garantia <strong>exclusiva de título de crédito</strong>. Em contrato, a garantia pessoal é a FIANÇA. E no aval não há benefício de ordem."},
+  {m:"Penal/Empresarial",p:2,q:"Endosso PARCIAL é válido?",a:"<strong>NÃO — é NULO</strong> (LUG art. 12; CC art. 912). O endosso deve ser total."},
+  {m:"Penal/Empresarial",p:2,q:"Improbidade: ainda existe modalidade CULPOSA?",a:"<strong>NÃO.</strong> A Lei 14.230/2021 extinguiu a improbidade culposa — hoje exige-se <strong>DOLO</strong> em todas as modalidades."},
+
+  // ---------- LGPD / TI / RLM (peso 1) ----------
+  {m:"LGPD/TI/RLM",p:1,q:"LGPD: Controlador, Operador, Encarregado e ANPD — quem faz o quê?",a:"<strong>Controlador</strong> decide · <strong>Operador</strong> executa em nome dele · <strong>Encarregado (DPO)</strong> é o canal com titulares/ANPD · <strong>ANPD</strong> fiscaliza (não é agente de tratamento)."},
+  {m:"LGPD/TI/RLM",p:1,q:"Quais são os dados SENSÍVEIS da LGPD?",a:"Origem racial/étnica, convicção religiosa, opinião política, filiação sindical, saúde, vida sexual, genético, biométrico. <strong>Dados bancários NÃO são sensíveis.</strong>"},
+  {m:"LGPD/TI/RLM",p:1,q:"CID x ACID: qual é qual?",a:"<strong>CID</strong> = segurança da informação (Confidencialidade, Integridade, Disponibilidade). <strong>ACID</strong> = transações de BD (Atomicidade, Consistência, Isolamento, Durabilidade)."},
+  {m:"LGPD/TI/RLM",p:1,q:"Criptografia SIMÉTRICA x ASSIMÉTRICA?",a:"<strong>Simétrica</strong>: uma única chave compartilhada. <strong>Assimétrica</strong>: par pública/privada — cifra com uma, decifra com a outra."},
+  {m:"LGPD/TI/RLM",p:1,q:"Qual a negação de 'TODOS os contribuintes pagaram'?",a:"<strong>'Pelo menos UM contribuinte NÃO pagou'.</strong> Nunca negue um 'todo' com 'nenhum'!"},
+  {m:"LGPD/TI/RLM",p:1,q:"Juros SIMPLES x COMPOSTOS: as fórmulas?",a:"<strong>Simples</strong>: M = C(1 + i·n). <strong>Compostos</strong>: M = C(1 + i)ⁿ. Pegadinha clássica: dar a resposta do simples numa questão de composto."},
+  {m:"LGPD/TI/RLM",p:1,q:"Contrapositiva: qual a equivalente de 'Se P, então Q'?",a:"<strong>'Se NÃO Q, então NÃO P'</strong> (~Q → ~P). É a única equivalência segura do condicional."},
+];
+
+// ====== ESTADO / REPETIÇÃO ESPAÇADA ======
+const KEY='fc-ibam-guarulhos-v1';
+let estado={}, fila=[], atual=null, virado=false, sessao={vistos:0,acertos:0};
+
+function hoje(){return Math.floor(Date.now()/86400000);} // dias desde epoch
+
+function carregar(){
+  try{const s=localStorage.getItem(KEY); if(s) estado=JSON.parse(s);}catch(e){estado={};}
+}
+function salvar(){
+  try{localStorage.setItem(KEY,JSON.stringify(estado));}catch(e){}
+}
+
+// intervalos crescentes: errei=hoje | difícil=+1d | sei=dobra (1,3,7,15,30)
+function agendar(i,nota){
+  const st=estado[i]||{nivel:0,prox:0};
+  if(nota===0){st.nivel=0; st.prox=hoje();}
+  else if(nota===1){st.nivel=Math.max(0,st.nivel); st.prox=hoje()+1;}
+  else{
+    const ints=[1,3,7,15,30,60];
+    st.nivel=Math.min(st.nivel+1,ints.length-1);
+    st.prox=hoje()+ints[st.nivel];
+  }
+  estado[i]=st; salvar();
+}
+
+function montarFila(){
+  const f=document.getElementById('filtro').value;
+  const h=hoje();
+  fila=CARDS.map((c,i)=>i)
+    .filter(i=> f==='todas' || CARDS[i].m===f)
+    .filter(i=>{const st=estado[i]; return !st || st.prox<=h;});
+  // prioriza peso 3 e cartas nunca vistas
+  fila.sort((a,b)=>{
+    const na=!estado[a],nb=!estado[b];
+    if(na!==nb) return na?-1:1;
+    return CARDS[b].p-CARDS[a].p;
+  });
+}
+
+function proxima(){
+  if(fila.length===0){ mostrarFim(); return; }
+  atual=fila.shift(); virado=false;
+  const c=CARDS[atual];
+  document.getElementById('tag').textContent=c.m;
+  document.getElementById('pesoTag').textContent='peso '+c.p;
+  document.getElementById('pergunta').innerHTML=c.q;
+  document.getElementById('resposta').innerHTML=c.a;
+  document.getElementById('resposta').style.display='none';
+  document.getElementById('hint').style.display='block';
+  document.getElementById('grade').style.display='none';
+  atualizarStats();
+}
+
+function virar(){
+  if(virado||atual===null) return;
+  virado=true;
+  document.getElementById('resposta').style.display='block';
+  document.getElementById('hint').style.display='none';
+  document.getElementById('grade').style.display='grid';
+}
+
+function responder(nota){
+  if(!virado) return;
+  agendar(atual,nota);
+  sessao.vistos++; if(nota===2) sessao.acertos++;
+  proxima();
+}
+
+function atualizarStats(){
+  const h=hoje();
+  const pend=CARDS.filter((c,i)=>{const st=estado[i];return !st||st.prox<=h;}).length;
+  const dom=CARDS.filter((c,i)=>{const st=estado[i];return st&&st.nivel>=3;}).length;
+  document.getElementById('stat').textContent=`${sessao.vistos} nesta sessão · ${fila.length} na fila · ${dom}/${CARDS.length} dominados`;
+  document.getElementById('prog').style.width=Math.round((dom/CARDS.length)*100)+'%';
+}
+
+function mostrarFim(){
+  const h=hoje();
+  const prox=CARDS.map((c,i)=>estado[i]?estado[i].prox:h).filter(p=>p>h).sort((a,b)=>a-b)[0];
+  const dias=prox?prox-h:0;
+  document.getElementById('main').innerHTML=`
+    <div class="done">
+      <h2>✓ Fila zerada!</h2>
+      <p>Você revisou tudo que estava agendado para hoje.<br><br>
+      ${dias>0?`Próxima revisão em <strong>${dias} dia(s)</strong> — o espaçamento está funcionando.`:'Volte amanhã para a próxima rodada.'}<br><br>
+      Nesta sessão: <strong>${sessao.vistos}</strong> cartões · <strong>${sessao.acertos}</strong> marcados como "sei".</p>
+      <div style="margin-top:24px"><button class="ghost" onclick="location.reload()">Recarregar</button></div>
+    </div>`;
+}
+
+function zerar(){
+  if(!confirm('Apagar todo o progresso dos flashcards?')) return;
+  estado={}; salvar(); location.reload();
+}
+
+// init
+carregar();
+const mats=['todas',...new Set(CARDS.map(c=>c.m))];
+document.getElementById('filtro').innerHTML=mats.map(m=>`<option value="${m}">${m==='todas'?'Todas as matérias':m}</option>`).join('');
+document.getElementById('filtro').onchange=()=>{montarFila();sessao={vistos:0,acertos:0};proxima();};
+document.getElementById('sub').textContent=`${CARDS.length} cartões · funciona offline`;
+montarFila();
+proxima();
+
+// teclado (desktop)
+document.addEventListener('keydown',e=>{
+  if(e.code==='Space'){e.preventDefault(); virado?null:virar();}
+  if(virado){ if(e.key==='1')responder(0); if(e.key==='2')responder(1); if(e.key==='3')responder(2); }
+});
+</script>
+</body>
+</html>
