@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // material de estudo legado (fonte de dados pra scripts/migrate.ts, não app code)
+    "data/legacy/**",
   ]),
 ]);
 
