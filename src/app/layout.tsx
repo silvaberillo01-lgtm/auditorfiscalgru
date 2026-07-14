@@ -41,27 +41,30 @@ export default async function RootLayout({
         <RegisterSW />
         {user && (
           <header className="border-b border-neutral-800 bg-neutral-900/60 backdrop-blur">
-            <nav className="max-w-3xl mx-auto flex items-center gap-5 px-4 py-3 text-sm">
-              <Link href="/" className="font-semibold text-neutral-100">
+            <nav className="max-w-3xl mx-auto flex items-center gap-5 overflow-x-auto whitespace-nowrap px-4 py-3 text-sm">
+              <Link href="/" className="shrink-0 font-semibold text-neutral-100">
                 Hoje
               </Link>
-              <Link href="/temas" className="text-neutral-400 hover:text-neutral-100">
+              <Link href="/plano" className="shrink-0 text-neutral-400 hover:text-neutral-100">
+                Plano
+              </Link>
+              <Link href="/temas" className="shrink-0 text-neutral-400 hover:text-neutral-100">
                 Temas
               </Link>
-              <Link href="/revisar" className="text-neutral-400 hover:text-neutral-100">
+              <Link href="/revisar" className="shrink-0 text-neutral-400 hover:text-neutral-100">
                 Revisar
               </Link>
-              <Link href="/anotacoes" className="text-neutral-400 hover:text-neutral-100">
+              <Link href="/anotacoes" className="shrink-0 text-neutral-400 hover:text-neutral-100">
                 Anotações
               </Link>
-              <Link href="/principios" className="text-neutral-400 hover:text-neutral-100">
+              <Link href="/principios" className="shrink-0 text-neutral-400 hover:text-neutral-100">
                 Princípios
               </Link>
               <span className="flex-1" />
-              <Link href="/conta" className="text-neutral-400 hover:text-neutral-100">
+              <Link href="/conta" className="shrink-0 text-neutral-400 hover:text-neutral-100">
                 Conta
               </Link>
-              <span className="text-xs text-neutral-500">{user.email}</span>
+              <span className="hidden shrink-0 text-xs text-neutral-500 sm:inline">{user.email}</span>
               <LogoutButton />
             </nav>
           </header>

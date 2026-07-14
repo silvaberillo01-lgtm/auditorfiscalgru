@@ -1,15 +1,22 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { Anotacao, Fase, Tema, TemaProgresso } from "@/lib/types";
+import type { Anotacao, Fase, PlanoSemana, Tema, TemaProgresso } from "@/lib/types";
+import { FASE_ORDEM } from "@/lib/fase-ui";
+import { statusSemana, type StatusPrazo } from "@/lib/prazo";
 
-const FASE_ORDEM: Fase[] = [
-  "nao_iniciado",
-  "entendendo",
-  "testando",
-  "corrigindo",
-  "espacando",
-  "dominado",
-];
+/** Dentre uma lista de temas, qual está na fase mais atrasada (mais perto de nao_iniciado). */
+function temaMaisAtrasado(temaIds: string[], progressoMap: Map<string, Fase>): string {
+  let pior = temaIds[0];
+  let piorIndice = FASE_ORDEM.indexOf(progressoMap.get(pior) ?? "nao_iniciado");
+  for (const temaId of temaIds) {
+    const idx = FASE_ORDEM.indexOf(progressoMap.get(temaId) ?? "nao_iniciado");
+    if (idx < piorIndice) {
+      piorIndice = idx;
+      pior = temaId;
+    }
+  }
+  return pior;
+}
 
 export async function getTemas(): Promise<Tema[]> {
   const supabase = await createClient();
@@ -116,28 +123,81 @@ export async function getTemaDaSemana(userId: string) {
     .in("tema_id", semana.temas);
 
   const progressoMap = new Map((progressos ?? []).map((p) => [p.tema_id, p.fase as Fase]));
-
-  let temaMaisAtrasado = semana.temas[0];
-  let piorIndice = FASE_ORDEM.indexOf(progressoMap.get(temaMaisAtrasado) ?? "nao_iniciado");
-
-  for (const temaId of semana.temas) {
-    const fase = progressoMap.get(temaId) ?? "nao_iniciado";
-    const idx = FASE_ORDEM.indexOf(fase);
-    if (idx < piorIndice) {
-      piorIndice = idx;
-      temaMaisAtrasado = temaId;
-    }
-  }
+  const piorTemaId = temaMaisAtrasado(semana.temas, progressoMap);
 
   const { data: tema } = await supabase
     .from("temas")
     .select("*")
-    .eq("id", temaMaisAtrasado)
+    .eq("id", piorTemaId)
     .maybeSingle();
 
   return tema
-    ? { tema, fase: progressoMap.get(temaMaisAtrasado) ?? "nao_iniciado", semana: semana.semana }
+    ? { tema, fase: progressoMap.get(piorTemaId) ?? "nao_iniciado", semana: semana.semana }
     : null;
+}
+
+export type SemanaComTemas = {
+  semana: number;
+  periodo_inicio: string | null;
+  periodo_fim: string | null;
+  temas: { id: string; nome: string; fase: Fase }[];
+  status: StatusPrazo;
+  diasRestantes: number;
+};
+
+/** Todas as semanas do plano, com os temas resolvidos e o status de prazo de cada uma. */
+export async function getPlanoSemanas(userId: string): Promise<SemanaComTemas[]> {
+  const supabase = await createClient();
+  const [{ data: semanas }, { data: temas }, { data: progressos }] = await Promise.all([
+    supabase.from("plano_semanas").select("*").order("semana", { ascending: true }),
+    supabase.from("temas").select("id, nome"),
+    supabase.from("tema_progresso").select("tema_id, fase").eq("user_id", userId),
+  ]);
+
+  const temaNomeMap = new Map((temas ?? []).map((t) => [t.id, t.nome as string]));
+  const progressoMap = new Map(
+    (progressos ?? []).map((p) => [p.tema_id, p.fase as Fase])
+  );
+
+  return ((semanas ?? []) as PlanoSemana[]).map((semana) => {
+    const temaIds = semana.temas ?? [];
+    const temasResolvidos = temaIds
+      .filter((id) => temaNomeMap.has(id))
+      .map((id) => ({
+        id,
+        nome: temaNomeMap.get(id)!,
+        fase: progressoMap.get(id) ?? ("nao_iniciado" as Fase),
+      }));
+
+    const coberta =
+      temasResolvidos.length > 0 &&
+      temasResolvidos.every((t) => t.fase === "espacando" || t.fase === "dominado");
+
+    const { status, diasRestantes } = statusSemana(
+      semana.periodo_inicio,
+      semana.periodo_fim,
+      coberta
+    );
+
+    return {
+      semana: semana.semana,
+      periodo_inicio: semana.periodo_inicio,
+      periodo_fim: semana.periodo_fim,
+      temas: temasResolvidos,
+      status,
+      diasRestantes,
+    };
+  });
+}
+
+/** Semana do plano que contém um tema específico (primeira ocorrência). */
+export async function getSemanaDoTema(
+  userId: string,
+  temaId: string,
+  semanas?: SemanaComTemas[]
+): Promise<SemanaComTemas | null> {
+  const lista = semanas ?? (await getPlanoSemanas(userId));
+  return lista.find((s) => s.temas.some((t) => t.id === temaId)) ?? null;
 }
 
 /** % da prova coberto: soma peso*n_questoes dos temas dominado/espacando dividido pelo total. */

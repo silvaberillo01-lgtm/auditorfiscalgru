@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/server";
 import { requireAprovado } from "@/lib/auth";
-import { getTema, getProgresso, getAnotacoesDoTema, fasesLabel } from "@/lib/queries";
+import { getTema, getProgresso, getAnotacoesDoTema, getSemanaDoTema, fasesLabel } from "@/lib/queries";
 import { FASE_BADGE } from "@/lib/fase-ui";
 import type { Resumo } from "@/lib/types";
 import NotesPanel from "@/components/notes-panel";
+import DeadlineBadge from "@/components/deadline-badge";
+import PhaseStepper from "@/components/phase-stepper";
 import OpenTracker from "./open-tracker";
 import ResumoActions from "./resumo-actions";
 
@@ -18,11 +20,12 @@ export default async function TemaPage({
   const { id } = await params;
   const { user } = await requireAprovado();
   const supabase = await createClient();
-  const [tema, progresso, { data: resumos }, anotacoes] = await Promise.all([
+  const [tema, progresso, { data: resumos }, anotacoes, semana] = await Promise.all([
     getTema(id),
     getProgresso(user.id, id),
     supabase.from("resumos").select("*").eq("tema_id", id),
     getAnotacoesDoTema(user.id, id),
+    getSemanaDoTema(user.id, id),
   ]);
 
   if (!tema) notFound();
@@ -36,13 +39,16 @@ export default async function TemaPage({
       <OpenTracker temaId={id} />
       <div>
         <h1 className="text-xl font-semibold text-neutral-100">{tema.nome}</h1>
-        <div className="mt-1 flex items-center gap-2 text-sm text-neutral-500">
+        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
           <span>{tema.turno} · {tema.caderno}</span>
           <span className={`rounded-full px-2 py-0.5 text-xs font-bold tracking-wide ${FASE_BADGE[progresso.fase]}`}>
             {fasesLabel(progresso.fase)}
           </span>
+          {semana && <DeadlineBadge status={semana.status} diasRestantes={semana.diasRestantes} />}
         </div>
       </div>
+
+      <PhaseStepper progresso={progresso} />
 
       <div className="flex gap-2">
         {podeTestar && (

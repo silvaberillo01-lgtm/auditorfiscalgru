@@ -1,4 +1,43 @@
 import type { Fase } from "@/lib/types";
+import type { StatusPrazo } from "@/lib/prazo";
+
+/** Todas as fases, na ordem de progresso — usada pra comparar "quem está mais atrasado". */
+export const FASE_ORDEM: Fase[] = [
+  "nao_iniciado",
+  "entendendo",
+  "testando",
+  "corrigindo",
+  "espacando",
+  "dominado",
+];
+
+/** As 5 etapas visíveis no stepper de um tema — sem "nao_iniciado". */
+export const FASE_PASSOS: Fase[] = [
+  "entendendo",
+  "testando",
+  "corrigindo",
+  "espacando",
+  "dominado",
+];
+
+export const FASE_ICON: Record<Fase, string> = {
+  nao_iniciado: "⚪",
+  entendendo: "🧠",
+  testando: "🎯",
+  corrigindo: "🔍",
+  espacando: "⏳",
+  dominado: "⭐",
+};
+
+/** Rótulo curto e imperativo pro stepper de etapas ("Entender", "Testar"...). */
+export const FASE_STEP_LABEL: Record<Fase, string> = {
+  nao_iniciado: "Começar",
+  entendendo: "Entender",
+  testando: "Testar",
+  corrigindo: "Corrigir",
+  espacando: "Espaçar",
+  dominado: "Dominar",
+};
 
 /**
  * Mesma paleta do guia de estudos antigo: azul=entender, dourado=testar,
@@ -70,3 +109,18 @@ export function labelAcaoDaFase(fase: Fase): string {
       return "Abrir resumo";
   }
 }
+
+/** Cores por status de prazo (semana atrasada/atual/concluída/futura). */
+export const PRAZO_HEX: Record<StatusPrazo, string> = {
+  atrasada: "#E2574C",
+  atual: "#D9A84E",
+  concluida: "#5E9E6F",
+  futura: "#6b7280",
+};
+
+export const PRAZO_BADGE: Record<StatusPrazo, string> = {
+  atrasada: "bg-[#E2574C1f] text-[#ef8880]",
+  atual: "bg-[#D9A84E1f] text-[#e8c179]",
+  concluida: "bg-[#5E9E6F1f] text-[#8ec49c]",
+  futura: "bg-[#6b72801f] text-[#9ca3af]",
+};
