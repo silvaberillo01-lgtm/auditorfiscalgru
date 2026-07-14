@@ -58,6 +58,9 @@ export default async function RootLayout({
                 Princípios
               </Link>
               <span className="flex-1" />
+              <Link href="/conta" className="text-neutral-400 hover:text-neutral-100">
+                Conta
+              </Link>
               <span className="text-xs text-neutral-500">{user.email}</span>
               <LogoutButton />
             </nav>
