@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { revisarFlashcardAction } from "@/app/actions";
+import { enfileirar, lerFila, limparFila } from "@/lib/offline-queue";
 
 type Card = {
   flashcard_id: string;
@@ -12,11 +13,69 @@ type Card = {
   resposta_html: string;
 };
 
-export default function FlashcardQueue({ cards }: { cards: Card[] }) {
+async function sincronizarFila() {
+  const fila = lerFila();
+  if (fila.length === 0) return;
+  for (const revisao of fila) {
+    try {
+      await revisarFlashcardAction({
+        temaId: revisao.temaId,
+        flashcardId: revisao.flashcardId,
+        acertou: revisao.acertou,
+      });
+    } catch {
+      return; // ainda sem conexão de verdade — tenta de novo na próxima
+    }
+  }
+  limparFila();
+}
+
+function lerCacheLocal(): Card[] | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const cache = localStorage.getItem("revisar:cards");
+    return cache ? JSON.parse(cache) : null;
+  } catch {
+    return null;
+  }
+}
+
+export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[] }) {
+  const [cards] = useState(() =>
+    cardsIniciais.length > 0 ? cardsIniciais : (lerCacheLocal() ?? cardsIniciais)
+  );
   const [indice, setIndice] = useState(0);
   const [virado, setVirado] = useState(false);
+  const [offline, setOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
+
+  useEffect(() => {
+    // cacheia os cards de hoje localmente pro trem sem sinal
+    try {
+      localStorage.setItem("revisar:cards", JSON.stringify(cardsIniciais));
+    } catch {
+      // localStorage indisponível (modo privado etc) — segue sem cache local
+    }
+  }, [cardsIniciais]);
+
+  useEffect(() => {
+    sincronizarFila();
+
+    function aoConectar() {
+      setOffline(false);
+      sincronizarFila();
+    }
+    function aoDesconectar() {
+      setOffline(true);
+    }
+    window.addEventListener("online", aoConectar);
+    window.addEventListener("offline", aoDesconectar);
+    return () => {
+      window.removeEventListener("online", aoConectar);
+      window.removeEventListener("offline", aoDesconectar);
+    };
+  }, []);
 
   if (cards.length === 0) {
     return <p className="text-sm text-neutral-500">Nenhuma revisão pendente hoje. 🎉</p>;
@@ -34,19 +93,35 @@ export default function FlashcardQueue({ cards }: { cards: Card[] }) {
 
   function avaliar(acertou: boolean) {
     startTransition(async () => {
-      await revisarFlashcardAction({
-        temaId: card.tema_id,
-        flashcardId: card.flashcard_id,
-        acertou,
-      });
+      try {
+        if (offline) throw new Error("offline");
+        await revisarFlashcardAction({
+          temaId: card.tema_id,
+          flashcardId: card.flashcard_id,
+          acertou,
+        });
+        router.refresh();
+      } catch {
+        enfileirar({
+          temaId: card.tema_id,
+          flashcardId: card.flashcard_id,
+          acertou,
+          ts: Date.now(),
+        });
+      }
       setVirado(false);
       setIndice((i) => i + 1);
-      router.refresh();
     });
   }
 
   return (
     <div className="space-y-4">
+      {offline && (
+        <p className="text-xs rounded bg-amber-50 border border-amber-200 px-2 py-1 text-amber-700">
+          Sem conexão — suas respostas ficam guardadas e sincronizam automaticamente quando
+          voltar o sinal.
+        </p>
+      )}
       <p className="text-xs text-neutral-500">
         {indice + 1} / {cards.length} · {card.tema_nome}
       </p>

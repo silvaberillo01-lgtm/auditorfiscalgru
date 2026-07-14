@@ -112,6 +112,21 @@ async function migrarQuestoes() {
     return;
   }
 
+  // Correção conhecida: questões antigas de PAT que citam "30 dias" pro
+  // recurso voluntário estão desatualizadas — o Decreto 21.066/2000 art. 34
+  // diz 20 dias. Só avisa (não reescreve alternativas automaticamente,
+  // porque pode quebrar o gabarito) — revise manualmente as linhas listadas.
+  for (const q of linhas) {
+    const textoCompleto = JSON.stringify(q);
+    if (
+      /recurso volunt[áa]rio/i.test(textoCompleto) &&
+      /30\s*dias/i.test(textoCompleto) &&
+      /processo administrativo|pat\b/i.test(textoCompleto)
+    ) {
+      console.warn(`  aviso: questão sobre PAT menciona "30 dias" pro recurso voluntário — confira manualmente, o correto é 20 dias (Decreto 21.066/2000, art. 34): "${String(q.enunciado).slice(0, 80)}..."`);
+    }
+  }
+
   const { error } = await supabase.from("questoes").insert(linhas);
   if (error) console.error("Erro ao inserir questões:", error.message);
   else console.log(`OK: ${linhas.length} questões migradas.`);
@@ -161,8 +176,20 @@ async function migrarFlashcards() {
   for (const c of cards) {
     const nomeAntigo = c.m ?? c.tema ?? c.area ?? "";
     const pergunta = c.p ?? c.pergunta ?? c.q ?? "";
-    const resposta = c.r ?? c.resposta ?? c.a ?? "";
+    let resposta = c.r ?? c.resposta ?? c.a ?? "";
     const temas = remapTema(nomeAntigo, `${pergunta} ${resposta}`);
+
+    // Correção conhecida: card antigo de PAT dizia "30 dias" pro recurso
+    // voluntário; o Decreto 21.066/2000 art. 34 diz 20 dias.
+    if (
+      temas.includes("processo-administrativo-tributario") &&
+      /recurso volunt[áa]rio/i.test(`${pergunta} ${resposta}`) &&
+      /30\s*dias/i.test(resposta)
+    ) {
+      console.warn(`  corrigindo flashcard de PAT (30 dias -> 20 dias): "${pergunta}"`);
+      resposta = resposta.replace(/30\s*dias/gi, "20 dias");
+    }
+
     for (const tema_id of temas) {
       linhas.push({ tema_id, pergunta, resposta_html: resposta });
     }

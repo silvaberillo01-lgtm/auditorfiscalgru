@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
+import { requireAprovado } from "@/lib/auth";
 import { getTema } from "@/lib/queries";
 import type { Questao } from "@/lib/types";
 import QuestaoForm from "./questao-form";
@@ -10,9 +11,11 @@ export default async function QuestoesPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  await requireAprovado();
   const tema = await getTema(id);
   if (!tema) notFound();
 
+  const supabase = await createClient();
   const { data: questoes } = await supabase
     .from("questoes")
     .select("*")

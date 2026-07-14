@@ -1,12 +1,16 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
+import { requireAprovado } from "@/lib/auth";
 import FlashcardQueue from "./flashcard-queue";
 
 export default async function RevisarPage() {
+  const { user } = await requireAprovado();
+  const supabase = await createClient();
   const hoje = new Date().toISOString().slice(0, 10);
 
   const { data } = await supabase
     .from("flashcard_reviews")
     .select("flashcard_id, proxima_revisao, flashcards(id, tema_id, pergunta, resposta_html, temas(nome))")
+    .eq("user_id", user.id)
     .lte("proxima_revisao", hoje)
     .order("proxima_revisao", { ascending: true });
 

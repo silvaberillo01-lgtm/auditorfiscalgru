@@ -1,17 +1,19 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { supabase } from "@/lib/supabase";
+import { requireAprovadoAction } from "@/lib/auth";
 import * as engine from "@/lib/engine";
 
 export async function abrirResumoAction(temaId: string) {
-  await engine.abrirResumo(temaId);
+  const { user } = await requireAprovadoAction();
+  await engine.abrirResumo(user.id, temaId);
   revalidatePath("/");
   revalidatePath(`/temas/${temaId}`);
 }
 
 export async function marcarResumoConcluidoAction(temaId: string) {
-  await engine.marcarResumoConcluido(temaId);
+  const { user } = await requireAprovadoAction();
+  await engine.marcarResumoConcluido(user.id, temaId);
   revalidatePath("/");
   revalidatePath(`/temas/${temaId}`);
 }
@@ -22,7 +24,8 @@ export async function registrarRespostaAction(params: {
   resposta: string;
   correta: boolean;
 }) {
-  await engine.registrarResposta(params);
+  const { user } = await requireAprovadoAction();
+  await engine.registrarResposta({ userId: user.id, ...params });
   revalidatePath("/");
   revalidatePath(`/temas/${params.temaId}`);
   revalidatePath(`/temas/${params.temaId}/questoes`);
@@ -33,7 +36,8 @@ export async function corrigirRespostaAction(params: {
   respostaId: string;
   raciocinio: string;
 }) {
-  await engine.corrigirResposta(params);
+  const { user } = await requireAprovadoAction();
+  await engine.corrigirResposta({ userId: user.id, ...params });
   revalidatePath("/");
   revalidatePath(`/temas/${params.temaId}`);
   revalidatePath(`/temas/${params.temaId}/corrigir`);
@@ -44,12 +48,14 @@ export async function revisarFlashcardAction(params: {
   flashcardId: string;
   acertou: boolean;
 }) {
-  await engine.revisarFlashcard(params);
+  const { user } = await requireAprovadoAction();
+  await engine.revisarFlashcard({ userId: user.id, ...params });
   revalidatePath("/");
   revalidatePath("/revisar");
 }
 
 export async function salvarDuvidaAction(respostaId: string, duvida: string) {
-  await supabase.from("respostas").update({ duvida }).eq("id", respostaId);
+  const { user, supabase } = await requireAprovadoAction();
+  await supabase.from("respostas").update({ duvida }).eq("id", respostaId).eq("user_id", user.id);
   revalidatePath("/");
 }

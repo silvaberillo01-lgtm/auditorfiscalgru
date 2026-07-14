@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireAprovado } from "@/lib/auth";
 import { getTemas, getProgressoMap, fasesLabel } from "@/lib/queries";
 import type { Fase } from "@/lib/types";
 
@@ -12,7 +13,8 @@ const FASE_COR: Record<Fase, string> = {
 };
 
 export default async function TemasPage() {
-  const [temas, progressoMap] = await Promise.all([getTemas(), getProgressoMap()]);
+  const { user } = await requireAprovado();
+  const [temas, progressoMap] = await Promise.all([getTemas(), getProgressoMap(user.id)]);
 
   return (
     <div className="space-y-4">

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
+import { requireAprovado } from "@/lib/auth";
 import { getTema, getProgresso, fasesLabel } from "@/lib/queries";
 import type { Resumo } from "@/lib/types";
 import OpenTracker from "./open-tracker";
@@ -13,9 +14,11 @@ export default async function TemaPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const { user } = await requireAprovado();
+  const supabase = await createClient();
   const [tema, progresso, { data: resumos }] = await Promise.all([
     getTema(id),
-    getProgresso(id),
+    getProgresso(user.id, id),
     supabase.from("resumos").select("*").eq("tema_id", id),
   ]);
 

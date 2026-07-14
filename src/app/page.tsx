@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { requireAprovado } from "@/lib/auth";
 import {
   getRevisoesAtrasadas,
   getTemaDaSemana,
@@ -8,11 +9,12 @@ import {
 } from "@/lib/queries";
 
 export default async function HojePage() {
+  const { user } = await requireAprovado();
   const [revisoes, temaDaSemana, progressoProva, streak] = await Promise.all([
-    getRevisoesAtrasadas(),
-    getTemaDaSemana(),
-    getProgressoProva(),
-    getStreak(),
+    getRevisoesAtrasadas(user.id),
+    getTemaDaSemana(user.id),
+    getProgressoProva(user.id),
+    getStreak(user.id),
   ]);
 
   const totalRevisoes = [...revisoes.values()].reduce((a, b) => a + b.count, 0);

@@ -1,5 +1,5 @@
 import "server-only";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import type { Fase } from "@/lib/types";
 
 const SEQUENCIA_INTERVALOS = [1, 3, 7, 15, 30, 60];
@@ -14,76 +14,94 @@ function hojeISO() {
   return new Date().toISOString().slice(0, 10);
 }
 
-async function garantirProgresso(temaId: string) {
+async function garantirProgresso(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  temaId: string
+) {
   const { data } = await supabase
     .from("tema_progresso")
     .select("*")
+    .eq("user_id", userId)
     .eq("tema_id", temaId)
     .maybeSingle();
   if (data) return data;
   const { data: criado } = await supabase
     .from("tema_progresso")
-    .insert({ tema_id: temaId, fase: "nao_iniciado" as Fase })
+    .insert({ user_id: userId, tema_id: temaId, fase: "nao_iniciado" as Fase })
     .select("*")
     .single();
   return criado!;
 }
 
-async function registrarAtividade(acoes = 1) {
+async function registrarAtividade(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  acoes = 1
+) {
   const data = hojeISO();
   const { data: existente } = await supabase
     .from("atividade_diaria")
     .select("*")
+    .eq("user_id", userId)
     .eq("data", data)
     .maybeSingle();
   if (existente) {
     await supabase
       .from("atividade_diaria")
       .update({ acoes: existente.acoes + acoes })
+      .eq("user_id", userId)
       .eq("data", data);
   } else {
-    await supabase.from("atividade_diaria").insert({ data, acoes });
+    await supabase.from("atividade_diaria").insert({ user_id: userId, data, acoes });
   }
 }
 
 /** Abriu a página de resumo do tema pela primeira vez. */
-export async function abrirResumo(temaId: string) {
-  const progresso = await garantirProgresso(temaId);
+export async function abrirResumo(userId: string, temaId: string) {
+  const supabase = await createClient();
+  const progresso = await garantirProgresso(supabase, userId, temaId);
   if (progresso.fase === "nao_iniciado") {
     await supabase
       .from("tema_progresso")
       .update({ fase: "entendendo" satisfies Fase })
+      .eq("user_id", userId)
       .eq("tema_id", temaId);
   }
 }
 
 /** Botão explícito "terminei o resumo". */
-export async function marcarResumoConcluido(temaId: string) {
-  await garantirProgresso(temaId);
+export async function marcarResumoConcluido(userId: string, temaId: string) {
+  const supabase = await createClient();
+  await garantirProgresso(supabase, userId, temaId);
   await supabase
     .from("tema_progresso")
     .update({ fase: "testando" satisfies Fase, entendido_em: new Date().toISOString() })
+    .eq("user_id", userId)
     .eq("tema_id", temaId);
-  await registrarAtividade();
+  await registrarAtividade(supabase, userId);
 }
 
 /** Grava a resposta de uma questão e verifica se o tema virou "corrigindo". */
 export async function registrarResposta(params: {
+  userId: string;
   temaId: string;
   questaoId: string;
   resposta: string;
   correta: boolean;
 }) {
-  const { temaId, questaoId, resposta, correta } = params;
+  const { userId, temaId, questaoId, resposta, correta } = params;
+  const supabase = await createClient();
 
   await supabase.from("respostas").insert({
+    user_id: userId,
     questao_id: questaoId,
     resposta,
     correta,
   });
-  await registrarAtividade();
+  await registrarAtividade(supabase, userId);
 
-  const progresso = await garantirProgresso(temaId);
+  const progresso = await garantirProgresso(supabase, userId, temaId);
   if (progresso.fase !== "testando") return;
 
   const { data: questoes } = await supabase
@@ -96,6 +114,7 @@ export async function registrarResposta(params: {
   const { data: respostas } = await supabase
     .from("respostas")
     .select("questao_id, correta, respondida_em")
+    .eq("user_id", userId)
     .in("questao_id", questoes!.map((q) => q.id))
     .order("respondida_em", { ascending: false });
 
@@ -119,21 +138,28 @@ export async function registrarResposta(params: {
       testado_em: new Date().toISOString(),
       pct_acerto: pct,
     })
+    .eq("user_id", userId)
     .eq("tema_id", temaId);
 }
 
 /** Preenche o raciocínio de uma resposta errada (correção ativa). */
 export async function corrigirResposta(params: {
+  userId: string;
   temaId: string;
   respostaId: string;
   raciocinio: string;
 }) {
-  const { temaId, respostaId, raciocinio } = params;
+  const { userId, temaId, respostaId, raciocinio } = params;
+  const supabase = await createClient();
 
-  await supabase.from("respostas").update({ raciocinio }).eq("id", respostaId);
-  await registrarAtividade();
+  await supabase
+    .from("respostas")
+    .update({ raciocinio })
+    .eq("id", respostaId)
+    .eq("user_id", userId);
+  await registrarAtividade(supabase, userId);
 
-  const progresso = await garantirProgresso(temaId);
+  const progresso = await garantirProgresso(supabase, userId, temaId);
   if (progresso.fase !== "corrigindo") return;
 
   const { data: questoes } = await supabase
@@ -144,6 +170,7 @@ export async function corrigirResposta(params: {
   const { data: errosSemRaciocinio } = await supabase
     .from("respostas")
     .select("id")
+    .eq("user_id", userId)
     .in("questao_id", (questoes ?? []).map((q) => q.id))
     .eq("correta", false)
     .is("raciocinio", null);
@@ -153,6 +180,7 @@ export async function corrigirResposta(params: {
   await supabase
     .from("tema_progresso")
     .update({ fase: "espacando" satisfies Fase, corrigido_em: new Date().toISOString() })
+    .eq("user_id", userId)
     .eq("tema_id", temaId);
 
   const { data: flashcards } = await supabase
@@ -168,10 +196,12 @@ export async function corrigirResposta(params: {
     const { data: existente } = await supabase
       .from("flashcard_reviews")
       .select("flashcard_id")
+      .eq("user_id", userId)
       .eq("flashcard_id", fc.id)
       .maybeSingle();
     if (!existente) {
       await supabase.from("flashcard_reviews").insert({
+        user_id: userId,
         flashcard_id: fc.id,
         intervalo_dias: 1,
         proxima_revisao: amanhaISO,
@@ -182,15 +212,18 @@ export async function corrigirResposta(params: {
 
 /** Leitner simplificado: acertou dobra o intervalo (na sequência), errou volta pra 1. */
 export async function revisarFlashcard(params: {
+  userId: string;
   temaId: string;
   flashcardId: string;
   acertou: boolean;
 }) {
-  const { temaId, flashcardId, acertou } = params;
+  const { userId, temaId, flashcardId, acertou } = params;
+  const supabase = await createClient();
 
   const { data: review } = await supabase
     .from("flashcard_reviews")
     .select("*")
+    .eq("user_id", userId)
     .eq("flashcard_id", flashcardId)
     .single();
   if (!review) return;
@@ -221,9 +254,10 @@ export async function revisarFlashcard(params: {
       streak_acertos: novoStreak,
       ciclos_completos: novosCiclos,
     })
+    .eq("user_id", userId)
     .eq("flashcard_id", flashcardId);
 
-  await registrarAtividade();
+  await registrarAtividade(supabase, userId);
 
   // espacando -> dominado: todos os cards do tema com 2+ ciclos completos (D+15 e D+30 sem erro)
   const { data: todosCards } = await supabase
@@ -235,6 +269,7 @@ export async function revisarFlashcard(params: {
   const { data: todasReviews } = await supabase
     .from("flashcard_reviews")
     .select("flashcard_id, ciclos_completos")
+    .eq("user_id", userId)
     .in("flashcard_id", todosCards.map((c) => c.id));
 
   const dominado =
@@ -245,6 +280,7 @@ export async function revisarFlashcard(params: {
     await supabase
       .from("tema_progresso")
       .update({ fase: "dominado" satisfies Fase })
+      .eq("user_id", userId)
       .eq("tema_id", temaId);
   }
 }

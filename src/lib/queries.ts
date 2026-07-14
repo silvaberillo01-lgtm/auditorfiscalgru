@@ -1,5 +1,5 @@
 import "server-only";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 import type { Fase, Tema, TemaProgresso } from "@/lib/types";
 
 const FASE_ORDEM: Fase[] = [
@@ -12,6 +12,7 @@ const FASE_ORDEM: Fase[] = [
 ];
 
 export async function getTemas(): Promise<Tema[]> {
+  const supabase = await createClient();
   const { data } = await supabase
     .from("temas")
     .select("*")
@@ -20,21 +21,25 @@ export async function getTemas(): Promise<Tema[]> {
 }
 
 export async function getTema(id: string): Promise<Tema | null> {
+  const supabase = await createClient();
   const { data } = await supabase.from("temas").select("*").eq("id", id).maybeSingle();
   return data;
 }
 
-export async function getProgressoMap(): Promise<Map<string, TemaProgresso>> {
-  const { data } = await supabase.from("tema_progresso").select("*");
+export async function getProgressoMap(userId: string): Promise<Map<string, TemaProgresso>> {
+  const supabase = await createClient();
+  const { data } = await supabase.from("tema_progresso").select("*").eq("user_id", userId);
   const map = new Map<string, TemaProgresso>();
   for (const p of data ?? []) map.set(p.tema_id, p);
   return map;
 }
 
-export async function getProgresso(temaId: string): Promise<TemaProgresso> {
+export async function getProgresso(userId: string, temaId: string): Promise<TemaProgresso> {
+  const supabase = await createClient();
   const { data } = await supabase
     .from("tema_progresso")
     .select("*")
+    .eq("user_id", userId)
     .eq("tema_id", temaId)
     .maybeSingle();
   return (
@@ -67,10 +72,12 @@ function hojeISO() {
 }
 
 /** Revisões atrasadas (flashcards com proxima_revisao <= hoje), agrupadas por tema. */
-export async function getRevisoesAtrasadas() {
+export async function getRevisoesAtrasadas(userId: string) {
+  const supabase = await createClient();
   const { data } = await supabase
     .from("flashcard_reviews")
     .select("flashcard_id, proxima_revisao, flashcards(tema_id, pergunta, temas(nome))")
+    .eq("user_id", userId)
     .lte("proxima_revisao", hojeISO());
 
   const porTema = new Map<string, { nome: string; count: number }>();
@@ -90,7 +97,8 @@ export async function getRevisoesAtrasadas() {
 }
 
 /** Tema da semana atual (por data), com fase mais atrasada dentre os da semana. */
-export async function getTemaDaSemana() {
+export async function getTemaDaSemana(userId: string) {
+  const supabase = await createClient();
   const hoje = hojeISO();
   const { data: semana } = await supabase
     .from("plano_semanas")
@@ -104,6 +112,7 @@ export async function getTemaDaSemana() {
   const { data: progressos } = await supabase
     .from("tema_progresso")
     .select("*")
+    .eq("user_id", userId)
     .in("tema_id", semana.temas);
 
   const progressoMap = new Map((progressos ?? []).map((p) => [p.tema_id, p.fase as Fase]));
@@ -132,10 +141,11 @@ export async function getTemaDaSemana() {
 }
 
 /** % da prova coberto: soma peso*n_questoes dos temas dominado/espacando dividido pelo total. */
-export async function getProgressoProva() {
+export async function getProgressoProva(userId: string) {
+  const supabase = await createClient();
   const [{ data: temas }, { data: progressos }] = await Promise.all([
     supabase.from("temas").select("id, peso, n_questoes_prova"),
-    supabase.from("tema_progresso").select("tema_id, fase"),
+    supabase.from("tema_progresso").select("tema_id, fase").eq("user_id", userId),
   ]);
 
   const faseMap = new Map((progressos ?? []).map((p) => [p.tema_id, p.fase as Fase]));
@@ -159,10 +169,12 @@ export async function getProgressoProva() {
 }
 
 /** Streak de dias consecutivos com atividade, terminando hoje ou ontem. */
-export async function getStreak(): Promise<number> {
+export async function getStreak(userId: string): Promise<number> {
+  const supabase = await createClient();
   const { data } = await supabase
     .from("atividade_diaria")
     .select("data, acoes")
+    .eq("user_id", userId)
     .gt("acoes", 0)
     .order("data", { ascending: false })
     .limit(400);
