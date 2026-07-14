@@ -156,10 +156,32 @@ create index if not exists idx_anotacoes_tema on anotacoes(tema_id);
 create index if not exists idx_anotacoes_data on anotacoes(data desc);
 
 -- Row Level Security ---------------------------------------------------
--- Conteúdo (temas/resumos/questoes/flashcards/plano_semanas) fica global,
--- sem RLS — os dois usuários compartilham o mesmo material de estudo.
+-- Conteúdo (temas/resumos/questoes/flashcards/plano_semanas) é global,
+-- compartilhado pelos dois usuários — RLS ligado, mas com leitura liberada
+-- pra qualquer usuário autenticado (ninguém de fora do app acessa).
 -- As tabelas de progresso pessoal têm RLS: cada um só vê e edita suas
 -- próprias linhas. perfis: cada um só vê/edita o próprio perfil.
+
+alter table temas enable row level security;
+alter table resumos enable row level security;
+alter table questoes enable row level security;
+alter table flashcards enable row level security;
+alter table plano_semanas enable row level security;
+
+drop policy if exists "temas: leitura autenticada" on temas;
+create policy "temas: leitura autenticada" on temas for select to authenticated using (true);
+
+drop policy if exists "resumos: leitura autenticada" on resumos;
+create policy "resumos: leitura autenticada" on resumos for select to authenticated using (true);
+
+drop policy if exists "questoes: leitura autenticada" on questoes;
+create policy "questoes: leitura autenticada" on questoes for select to authenticated using (true);
+
+drop policy if exists "flashcards: leitura autenticada" on flashcards;
+create policy "flashcards: leitura autenticada" on flashcards for select to authenticated using (true);
+
+drop policy if exists "plano_semanas: leitura autenticada" on plano_semanas;
+create policy "plano_semanas: leitura autenticada" on plano_semanas for select to authenticated using (true);
 
 alter table perfis enable row level security;
 alter table tema_progresso enable row level security;
