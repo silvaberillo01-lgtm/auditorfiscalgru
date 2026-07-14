@@ -32,6 +32,22 @@ body {
   }
 }
 
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 currentcolor;
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 6px transparent;
+    opacity: 0.85;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 1.8s ease-in-out infinite;
+}
+
 .prose-invert :where(code):not(:where([class~="not-prose"] *))::before,
 .prose-invert :where(code):not(:where([class~="not-prose"] *))::after {
   content: none;

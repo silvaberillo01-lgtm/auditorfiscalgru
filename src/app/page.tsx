@@ -3,11 +3,13 @@ import { requireAprovado } from "@/lib/auth";
 import {
   getRevisoesAtrasadas,
   getTemaDaSemana,
+  getSemanaDoTema,
   getProgressoProva,
   getStreak,
 } from "@/lib/queries";
 import { FASE_BADGE, FASE_BADGE_LABEL, FASE_SOLIDA, rotaDaFase, labelAcaoDaFase } from "@/lib/fase-ui";
 import ProgressRing from "@/components/progress-ring";
+import DeadlineBadge from "@/components/deadline-badge";
 
 export default async function HojePage() {
   const { user } = await requireAprovado();
@@ -17,6 +19,7 @@ export default async function HojePage() {
     getProgressoProva(user.id),
     getStreak(user.id),
   ]);
+  const semana = temaDaSemana ? await getSemanaDoTema(user.id, temaDaSemana.tema.id) : null;
 
   const totalRevisoes = [...revisoes.values()].reduce((a, b) => a + b.count, 0);
   const temRevisoes = totalRevisoes > 0;
@@ -61,7 +64,10 @@ export default async function HojePage() {
             {FASE_BADGE_LABEL[temaDaSemana.fase]}
           </span>
           <p className="mt-3 text-2xl font-bold text-neutral-100">{temaDaSemana.tema.nome}</p>
-          <p className="mt-1 text-sm text-neutral-500">Tema da semana — semana {temaDaSemana.semana}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <p className="text-sm text-neutral-500">Tema da semana — semana {temaDaSemana.semana}</p>
+            {semana && <DeadlineBadge status={semana.status} diasRestantes={semana.diasRestantes} />}
+          </div>
           <Link
             href={rotaDaFase(temaDaSemana.tema.id, temaDaSemana.fase)}
             className={`mt-5 inline-block rounded-full ${FASE_SOLIDA[temaDaSemana.fase]} px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90`}
@@ -107,6 +113,10 @@ export default async function HojePage() {
           </p>
         </div>
       </div>
+
+      <Link href="/plano" className="block text-center text-sm text-[#7db0ea] hover:underline">
+        Ver plano completo →
+      </Link>
     </div>
   );
 }
