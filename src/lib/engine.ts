@@ -70,8 +70,8 @@ export async function abrirResumo(userId: string, temaId: string) {
   }
 }
 
-/** Botão explícito "terminei o resumo". */
-export async function marcarResumoConcluido(userId: string, temaId: string) {
+/** Botão explícito "terminei o resumo". Retorna true (sempre transiciona). */
+export async function marcarResumoConcluido(userId: string, temaId: string): Promise<boolean> {
   const supabase = await createClient();
   await garantirProgresso(supabase, userId, temaId);
   await supabase
@@ -80,16 +80,17 @@ export async function marcarResumoConcluido(userId: string, temaId: string) {
     .eq("user_id", userId)
     .eq("tema_id", temaId);
   await registrarAtividade(supabase, userId);
+  return true;
 }
 
-/** Grava a resposta de uma questão e verifica se o tema virou "corrigindo". */
+/** Grava a resposta de uma questão. Retorna true se o tema virou "corrigindo" agora. */
 export async function registrarResposta(params: {
   userId: string;
   temaId: string;
   questaoId: string;
   resposta: string;
   correta: boolean;
-}) {
+}): Promise<boolean> {
   const { userId, temaId, questaoId, resposta, correta } = params;
   const supabase = await createClient();
 
@@ -102,14 +103,14 @@ export async function registrarResposta(params: {
   await registrarAtividade(supabase, userId);
 
   const progresso = await garantirProgresso(supabase, userId, temaId);
-  if (progresso.fase !== "testando") return;
+  if (progresso.fase !== "testando") return false;
 
   const { data: questoes } = await supabase
     .from("questoes")
     .select("id")
     .eq("tema_id", temaId);
   const totalQuestoes = questoes?.length ?? 0;
-  if (totalQuestoes === 0) return;
+  if (totalQuestoes === 0) return false;
 
   const { data: respostas } = await supabase
     .from("respostas")
@@ -126,7 +127,7 @@ export async function registrarResposta(params: {
     }
   }
 
-  if (ultimaPorQuestao.size < totalQuestoes) return; // ainda falta responder alguma
+  if (ultimaPorQuestao.size < totalQuestoes) return false; // ainda falta responder alguma
 
   const acertos = [...ultimaPorQuestao.values()].filter(Boolean).length;
   const pct = (acertos / totalQuestoes) * 100;
@@ -140,15 +141,16 @@ export async function registrarResposta(params: {
     })
     .eq("user_id", userId)
     .eq("tema_id", temaId);
+  return true;
 }
 
-/** Preenche o raciocínio de uma resposta errada (correção ativa). */
+/** Preenche o raciocínio de uma resposta errada. Retorna true se virou "espacando" agora. */
 export async function corrigirResposta(params: {
   userId: string;
   temaId: string;
   respostaId: string;
   raciocinio: string;
-}) {
+}): Promise<boolean> {
   const { userId, temaId, respostaId, raciocinio } = params;
   const supabase = await createClient();
 
@@ -160,7 +162,7 @@ export async function corrigirResposta(params: {
   await registrarAtividade(supabase, userId);
 
   const progresso = await garantirProgresso(supabase, userId, temaId);
-  if (progresso.fase !== "corrigindo") return;
+  if (progresso.fase !== "corrigindo") return false;
 
   const { data: questoes } = await supabase
     .from("questoes")
@@ -175,7 +177,7 @@ export async function corrigirResposta(params: {
     .eq("correta", false)
     .is("raciocinio", null);
 
-  if ((errosSemRaciocinio?.length ?? 0) > 0) return;
+  if ((errosSemRaciocinio?.length ?? 0) > 0) return false;
 
   await supabase
     .from("tema_progresso")
@@ -208,15 +210,16 @@ export async function corrigirResposta(params: {
       });
     }
   }
+  return true;
 }
 
-/** Leitner simplificado: acertou dobra o intervalo (na sequência), errou volta pra 1. */
+/** Leitner simplificado: acertou dobra o intervalo (na sequência), errou volta pra 1. Retorna true se virou "dominado" agora. */
 export async function revisarFlashcard(params: {
   userId: string;
   temaId: string;
   flashcardId: string;
   acertou: boolean;
-}) {
+}): Promise<boolean> {
   const { userId, temaId, flashcardId, acertou } = params;
   const supabase = await createClient();
 
@@ -226,7 +229,7 @@ export async function revisarFlashcard(params: {
     .eq("user_id", userId)
     .eq("flashcard_id", flashcardId)
     .single();
-  if (!review) return;
+  if (!review) return false;
 
   const hoje = hojeISO();
   let novoIntervalo: number;
@@ -264,7 +267,7 @@ export async function revisarFlashcard(params: {
     .from("flashcards")
     .select("id")
     .eq("tema_id", temaId);
-  if (!todosCards || todosCards.length === 0) return;
+  if (!todosCards || todosCards.length === 0) return false;
 
   const { data: todasReviews } = await supabase
     .from("flashcard_reviews")
@@ -283,4 +286,5 @@ export async function revisarFlashcard(params: {
       .eq("user_id", userId)
       .eq("tema_id", temaId);
   }
+  return dominado;
 }

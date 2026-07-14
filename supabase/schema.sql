@@ -131,6 +131,17 @@ create table if not exists atividade_diaria (
   primary key (user_id, data)
 );
 
+-- Anotações livres do usuário, por tema e por dia (pra copiar pra uma IA depois)
+create table if not exists anotacoes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  tema_id text references temas(id) on delete cascade,
+  data date not null default current_date,
+  titulo text,
+  conteudo_md text,
+  criada_em timestamptz not null default now()
+);
+
 create index if not exists idx_resumos_tema on resumos(tema_id);
 create index if not exists idx_questoes_tema on questoes(tema_id);
 create index if not exists idx_flashcards_tema on flashcards(tema_id);
@@ -140,6 +151,9 @@ create index if not exists idx_flashcard_reviews_proxima on flashcard_reviews(pr
 create index if not exists idx_flashcard_reviews_user on flashcard_reviews(user_id);
 create index if not exists idx_tema_progresso_user on tema_progresso(user_id);
 create index if not exists idx_atividade_diaria_user on atividade_diaria(user_id);
+create index if not exists idx_anotacoes_user on anotacoes(user_id);
+create index if not exists idx_anotacoes_tema on anotacoes(tema_id);
+create index if not exists idx_anotacoes_data on anotacoes(data desc);
 
 -- Row Level Security ---------------------------------------------------
 -- Conteúdo (temas/resumos/questoes/flashcards/plano_semanas) fica global,
@@ -152,6 +166,7 @@ alter table tema_progresso enable row level security;
 alter table flashcard_reviews enable row level security;
 alter table respostas enable row level security;
 alter table atividade_diaria enable row level security;
+alter table anotacoes enable row level security;
 
 drop policy if exists "perfis: ver o próprio" on perfis;
 create policy "perfis: ver o próprio" on perfis
@@ -175,4 +190,8 @@ create policy "respostas: crud próprio" on respostas
 
 drop policy if exists "atividade_diaria: crud próprio" on atividade_diaria;
 create policy "atividade_diaria: crud próprio" on atividade_diaria
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop policy if exists "anotacoes: crud próprio" on anotacoes;
+create policy "anotacoes: crud próprio" on anotacoes
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

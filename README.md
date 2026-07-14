@@ -113,6 +113,18 @@ diga "30 dias" no recurso voluntário (o correto, pelo Decreto
 recebem um aviso no terminal — corrija manualmente pra não arriscar
 quebrar o gabarito.
 
+### 3.2 Plano semanal (pra tela "Hoje" sugerir algo)
+
+O cronograma de 9 semanas já está em `guia-estudos-ibam-guarulhos.jsx`
+(array `PLANO`) — precisa do mesmo arquivo do passo 3.1. Rode:
+
+```bash
+npx tsx scripts/seed-plano.ts
+```
+
+Sem isso, `plano_semanas` fica vazia e a tela "Hoje" não tem o que
+sugerir quando não há revisão de flashcard atrasada.
+
 ---
 
 ## 4. Rodar localmente
@@ -175,6 +187,8 @@ continuam exigindo conexão.
   questões de treino em RLM.
 - `scripts/migrate.ts` — migra questões/resumos/flashcards dos 3 artefatos
   antigos.
+- `scripts/seed-plano.ts` — extrai o cronograma de 9 semanas do guia
+  antigo e popula `plano_semanas`.
 - `src/lib/supabase/` — clientes Supabase: `server.ts` (Server
   Components/Actions, por requisição), `browser.ts` (Client Components,
   usado no login), `middleware.ts` (refresh de sessão no proxy).
@@ -183,20 +197,32 @@ continuam exigindo conexão.
 - `src/lib/auth.ts` — `requireAprovado()` / `requireAprovadoAction()`:
   bloqueiam acesso de quem não está aprovado.
 - `src/lib/engine.ts` — engine de fase (`nao_iniciado → ... → dominado`) e
-  repetição espaçada (Leitner simplificado: 1→3→7→15→30→60 dias).
-- `src/app/page.tsx` — dashboard "hoje".
-- `src/app/temas/` — listagem de temas, resumo, questões, correção.
+  repetição espaçada (Leitner simplificado: 1→3→7→15→30→60 dias). Cada
+  transição retorna `true`/`false` pro toast motivacional saber quando
+  disparar.
+- `src/lib/fase-ui.ts` — paleta de cores por fase (azul=entender,
+  laranja=testar, vermelho=corrigir, verde=espaçar) e rota/label do botão
+  de ação, compartilhados entre a tela "Hoje" e a listagem de temas.
+- `src/app/page.tsx` — dashboard "hoje": card principal com a ação mais
+  urgente (revisões atrasadas > tema da semana), card secundário, anel de
+  progresso da prova e streak.
+- `src/app/temas/` — listagem de temas, resumo (com painel de anotações),
+  questões (idem), correção.
 - `src/app/revisar/` — fila de revisão de flashcards, com cache offline
   (`public/sw.js` + `src/lib/offline-queue.ts`).
+- `src/app/anotacoes/` — todas as anotações, agrupadas por data, com
+  filtro por tema e botão de copiar (individual ou do dia todo) em
+  formato markdown pronto pra colar numa IA.
+- `src/components/toast.tsx` — toast motivacional que aparece quando uma
+  fase fecha (terminar resumo, zerar questões, fechar correção, dominar
+  os flashcards de um tema).
 
 ## O que falta você preencher
 
 - Números reais de `peso`/`n_questoes_prova`/`turno`/`caderno` por tema
   (edital) — hoje são placeholders em `scripts/seed-temas.ts`.
-- Se ainda não rodou `scripts/migrate.ts`: os 3 artefatos antigos.
-- `plano_semanas` — sem UI ainda; insira direto no Table Editor do
-  Supabase (colunas: `semana`, `periodo_inicio`, `periodo_fim`, `temas`
-  como array de ids).
+- Se ainda não rodou `scripts/migrate.ts` e `scripts/seed-plano.ts`: os 3
+  artefatos antigos.
 - Ícones reais do PWA (`public/icon-192.png` / `public/icon-512.png`) —
   os atuais são placeholders sólidos, troque por algo com sua cara se
   quiser instalar o app com um ícone bonito.

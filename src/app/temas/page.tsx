@@ -1,16 +1,7 @@
 import Link from "next/link";
 import { requireAprovado } from "@/lib/auth";
 import { getTemas, getProgressoMap, fasesLabel } from "@/lib/queries";
-import type { Fase } from "@/lib/types";
-
-const FASE_COR: Record<Fase, string> = {
-  nao_iniciado: "bg-neutral-100 text-neutral-600",
-  entendendo: "bg-sky-100 text-sky-700",
-  testando: "bg-violet-100 text-violet-700",
-  corrigindo: "bg-amber-100 text-amber-700",
-  espacando: "bg-emerald-100 text-emerald-700",
-  dominado: "bg-green-600 text-white",
-};
+import { FASE_BADGE } from "@/lib/fase-ui";
 
 export default async function TemasPage() {
   const { user } = await requireAprovado();
@@ -26,7 +17,7 @@ export default async function TemasPage() {
             <li key={tema.id}>
               <Link
                 href={`/temas/${tema.id}`}
-                className="flex items-center justify-between rounded-lg border border-neutral-200 bg-white p-3 hover:border-neutral-300"
+                className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white p-3 shadow-sm hover:border-neutral-300"
               >
                 <div>
                   <p className="font-medium">{tema.nome}</p>
@@ -34,7 +25,7 @@ export default async function TemasPage() {
                     {tema.turno} · {tema.caderno} · peso {tema.peso}
                   </p>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-full ${FASE_COR[fase]}`}>
+                <span className={`text-xs px-2 py-1 rounded-full ${FASE_BADGE[fase]}`}>
                   {fasesLabel(fase)}
                 </span>
               </Link>

@@ -84,3 +84,13 @@ export type AtividadeDiaria = {
   minutos_estudo: number;
   acoes: number;
 };
+
+export type Anotacao = {
+  id: string;
+  user_id: string;
+  tema_id: string | null;
+  data: string;
+  titulo: string | null;
+  conteudo_md: string | null;
+  criada_em: string;
+};

@@ -51,6 +51,9 @@ export default async function RootLayout({
               <Link href="/revisar" className="text-neutral-600 hover:text-neutral-900">
                 Revisar
               </Link>
+              <Link href="/anotacoes" className="text-neutral-600 hover:text-neutral-900">
+                Anotações
+              </Link>
               <span className="flex-1" />
               <span className="text-xs text-neutral-400">{user.email}</span>
               <LogoutButton />

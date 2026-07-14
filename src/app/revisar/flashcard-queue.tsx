@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { revisarFlashcardAction } from "@/app/actions";
 import { enfileirar, lerFila, limparFila } from "@/lib/offline-queue";
+import Toast, { type ToastInfo } from "@/components/toast";
 
 type Card = {
   flashcard_id: string;
@@ -47,6 +48,7 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
   const [indice, setIndice] = useState(0);
   const [virado, setVirado] = useState(false);
   const [offline, setOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
+  const [toast, setToast] = useState<ToastInfo>(null);
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -78,14 +80,22 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
   }, []);
 
   if (cards.length === 0) {
-    return <p className="text-sm text-neutral-500">Nenhuma revisão pendente hoje. 🎉</p>;
+    return (
+      <>
+        <p className="text-sm text-neutral-500">Nenhuma revisão pendente hoje. 🎉</p>
+        <Toast info={toast} onDone={() => setToast(null)} />
+      </>
+    );
   }
 
   if (indice >= cards.length) {
     return (
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
-        Revisões de hoje concluídas!
-      </div>
+      <>
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+          Revisões de hoje concluídas!
+        </div>
+        <Toast info={toast} onDone={() => setToast(null)} />
+      </>
     );
   }
 
@@ -95,11 +105,12 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
     startTransition(async () => {
       try {
         if (offline) throw new Error("offline");
-        await revisarFlashcardAction({
+        const resultado = await revisarFlashcardAction({
           temaId: card.tema_id,
           flashcardId: card.flashcard_id,
           acertou,
         });
+        if (resultado) setToast(resultado);
         router.refresh();
       } catch {
         enfileirar({
@@ -116,6 +127,7 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
 
   return (
     <div className="space-y-4">
+      <Toast info={toast} onDone={() => setToast(null)} />
       {offline && (
         <p className="text-xs rounded bg-amber-50 border border-amber-200 px-2 py-1 text-amber-700">
           Sem conexão — suas respostas ficam guardadas e sincronizam automaticamente quando

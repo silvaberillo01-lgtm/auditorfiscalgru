@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { Fase, Tema, TemaProgresso } from "@/lib/types";
+import type { Anotacao, Fase, Tema, TemaProgresso } from "@/lib/types";
 
 const FASE_ORDEM: Fase[] = [
   "nao_iniciado",
@@ -192,4 +192,31 @@ export async function getStreak(userId: string): Promise<number> {
     cursor.setDate(cursor.getDate() - 1);
   }
   return streak;
+}
+
+export async function getAnotacoesDoTema(userId: string, temaId: string): Promise<Anotacao[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("anotacoes")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("tema_id", temaId)
+    .order("criada_em", { ascending: false });
+  return data ?? [];
+}
+
+/** Todas as anotações do usuário, com o nome do tema já resolvido, mais recentes primeiro. */
+export async function getAnotacoesComTema(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("anotacoes")
+    .select("*, temas(nome)")
+    .eq("user_id", userId)
+    .order("data", { ascending: false })
+    .order("criada_em", { ascending: false });
+
+  return (data ?? []).map((a) => ({
+    ...(a as Anotacao),
+    tema_nome: (a as unknown as { temas: { nome: string } | null }).temas?.nome ?? null,
+  }));
 }

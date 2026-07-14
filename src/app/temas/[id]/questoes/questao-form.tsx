@@ -4,11 +4,13 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { registrarRespostaAction } from "@/app/actions";
 import type { Questao } from "@/lib/types";
+import Toast, { type ToastInfo } from "@/components/toast";
 
 export default function QuestaoForm({ temaId, questao }: { temaId: string; questao: Questao }) {
   const [selecionada, setSelecionada] = useState<string | null>(null);
   const [respondida, setRespondida] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [toast, setToast] = useState<ToastInfo>(null);
   const router = useRouter();
 
   const alternativas = questao.alternativas ?? [];
@@ -19,18 +21,20 @@ export default function QuestaoForm({ temaId, questao }: { temaId: string; quest
     setSelecionada(letra);
     setRespondida(true);
     startTransition(async () => {
-      await registrarRespostaAction({
+      const resultado = await registrarRespostaAction({
         temaId,
         questaoId: questao.id,
         resposta: letra,
         correta: letra === questao.gabarito,
       });
+      if (resultado) setToast(resultado);
       router.refresh();
     });
   }
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white p-4 space-y-3">
+      <Toast info={toast} onDone={() => setToast(null)} />
       <p className="font-medium">{questao.enunciado}</p>
       <div className="space-y-2">
         {alternativas.map((alt) => {

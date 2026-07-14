@@ -5,8 +5,9 @@ import {
   getTemaDaSemana,
   getProgressoProva,
   getStreak,
-  fasesLabel,
 } from "@/lib/queries";
+import { FASE_BADGE, FASE_BADGE_LABEL, rotaDaFase, labelAcaoDaFase } from "@/lib/fase-ui";
+import ProgressRing from "@/components/progress-ring";
 
 export default async function HojePage() {
   const { user } = await requireAprovado();
@@ -18,52 +19,58 @@ export default async function HojePage() {
   ]);
 
   const totalRevisoes = [...revisoes.values()].reduce((a, b) => a + b.count, 0);
+  const temRevisoes = totalRevisoes > 0;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Hoje</h1>
         {streak > 0 && (
-          <span className="text-sm text-orange-600 font-medium">🔥 {streak} dia(s)</span>
+          <span className="flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-sm font-semibold text-orange-600">
+            🔥 {streak} dia{streak === 1 ? "" : "s"}
+          </span>
         )}
       </div>
 
-      {totalRevisoes > 0 && (
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-          <p className="font-medium text-amber-900">Hoje é dia de revisar</p>
-          <ul className="mt-2 text-sm text-amber-800 list-disc list-inside">
+      {/* Card principal */}
+      {temRevisoes ? (
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <span className="inline-block rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold tracking-wide text-green-700">
+            {FASE_BADGE_LABEL.espacando}
+          </span>
+          <p className="mt-3 text-2xl font-bold text-neutral-900">Hoje é dia de revisar</p>
+          <ul className="mt-3 space-y-1 text-sm text-neutral-600">
             {[...revisoes.entries()].map(([temaId, info]) => (
               <li key={temaId}>
-                {info.nome} ({info.count} card{info.count === 1 ? "" : "s"})
+                {info.nome} — {info.count} card{info.count === 1 ? "" : "s"}
               </li>
             ))}
           </ul>
           <Link
             href="/revisar"
-            className="mt-3 inline-block rounded bg-amber-600 px-3 py-1.5 text-sm text-white hover:bg-amber-700"
+            className="mt-5 inline-block rounded-full bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
           >
-            Revisar agora
+            Revisar agora ({totalRevisoes})
           </Link>
         </div>
-      )}
-
-      {temaDaSemana && (
-        <div className="rounded-lg border border-blue-300 bg-blue-50 p-4">
-          <p className="font-medium text-blue-900">Tema da semana</p>
-          <p className="mt-1 text-sm text-blue-800">
-            {temaDaSemana.tema.nome} — fase: {fasesLabel(temaDaSemana.fase)}
-          </p>
+      ) : temaDaSemana ? (
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <span
+            className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold tracking-wide ${FASE_BADGE[temaDaSemana.fase]}`}
+          >
+            {FASE_BADGE_LABEL[temaDaSemana.fase]}
+          </span>
+          <p className="mt-3 text-2xl font-bold text-neutral-900">{temaDaSemana.tema.nome}</p>
+          <p className="mt-1 text-sm text-neutral-500">Tema da semana — semana {temaDaSemana.semana}</p>
           <Link
-            href={`/temas/${temaDaSemana.tema.id}`}
-            className="mt-3 inline-block rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+            href={rotaDaFase(temaDaSemana.tema.id, temaDaSemana.fase)}
+            className="mt-5 inline-block rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-700"
           >
-            Abrir tema
+            {labelAcaoDaFase(temaDaSemana.fase)}
           </Link>
         </div>
-      )}
-
-      {!totalRevisoes && !temaDaSemana && (
-        <div className="rounded-lg border border-neutral-200 bg-white p-4 text-sm text-neutral-600">
+      ) : (
+        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm text-sm text-neutral-600">
           Sem revisões pendentes e sem plano definido para hoje.{" "}
           <Link href="/temas" className="text-blue-600 hover:underline">
             Escolha um tema para estudar
@@ -72,14 +79,33 @@ export default async function HojePage() {
         </div>
       )}
 
-      <div className="rounded-lg border border-neutral-200 bg-white p-4">
-        <p className="text-sm text-neutral-600">Progresso da prova</p>
-        <p className="mt-1 text-2xl font-semibold">
-          {progressoProva.pct}%{" "}
-          <span className="text-sm font-normal text-neutral-500">
-            ({progressoProva.temasDominados}/{progressoProva.totalTemas} temas)
+      {/* Card secundário: o outro item pendente, menor */}
+      {temRevisoes && temaDaSemana && (
+        <Link
+          href={rotaDaFase(temaDaSemana.tema.id, temaDaSemana.fase)}
+          className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-sm hover:border-neutral-300"
+        >
+          <div>
+            <p className="text-sm font-medium text-neutral-900">{temaDaSemana.tema.nome}</p>
+            <p className="text-xs text-neutral-500">Tema da semana {temaDaSemana.semana}</p>
+          </div>
+          <span
+            className={`rounded-full px-2 py-0.5 text-[11px] font-bold tracking-wide ${FASE_BADGE[temaDaSemana.fase]}`}
+          >
+            {FASE_BADGE_LABEL[temaDaSemana.fase]}
           </span>
-        </p>
+        </Link>
+      )}
+
+      {/* Progresso da prova */}
+      <div className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <ProgressRing pct={progressoProva.pct} />
+        <div>
+          <p className="text-sm text-neutral-500">Progresso da prova</p>
+          <p className="text-sm text-neutral-700">
+            {progressoProva.temasDominados} de {progressoProva.totalTemas} temas cobertos
+          </p>
+        </div>
       </div>
     </div>
   );
