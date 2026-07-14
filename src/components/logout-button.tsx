@@ -13,7 +13,7 @@ export default function LogoutButton() {
         router.push("/login");
         router.refresh();
       }}
-      className="text-sm text-neutral-500 underline hover:text-neutral-700"
+      className="text-sm text-neutral-500 underline hover:text-neutral-300"
     >
       Sair
     </button>

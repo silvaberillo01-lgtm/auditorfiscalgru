@@ -32,7 +32,7 @@ function CopiarBotao({ texto, label = "Copiar para IA" }: { texto: string; label
         setCopiado(true);
         setTimeout(() => setCopiado(false), 1500);
       }}
-      className="text-xs text-neutral-500 hover:text-neutral-800 underline shrink-0"
+      className="text-xs text-neutral-500 hover:text-neutral-200 underline shrink-0"
     >
       {copiado ? "Copiado!" : label}
     </button>
@@ -68,7 +68,7 @@ export default function AnotacoesList({
       <select
         value={filtroTema}
         onChange={(e) => setFiltroTema(e.target.value)}
-        className="rounded border border-neutral-300 px-3 py-1.5 text-sm"
+        className="rounded border border-neutral-700 bg-neutral-900 px-3 py-1.5 text-sm text-neutral-200"
       >
         <option value="todos">Todos os temas</option>
         {temas.map((t) => (
@@ -85,7 +85,7 @@ export default function AnotacoesList({
       {porData.map(([data, itens]) => (
         <div key={data} className="space-y-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold capitalize text-neutral-700">{formatarData(data)}</h2>
+            <h2 className="text-sm font-semibold capitalize text-neutral-300">{formatarData(data)}</h2>
             <CopiarBotao
               label="Copiar tudo do dia"
               texto={itens.map((a) => blocoParaIA(a.tema_nome, a.data, a.conteudo_md)).join("\n\n")}
@@ -93,12 +93,12 @@ export default function AnotacoesList({
           </div>
           <div className="space-y-2">
             {itens.map((a) => (
-              <div key={a.id} className="rounded-xl border border-neutral-200 bg-white p-3 shadow-sm">
+              <div key={a.id} className="rounded-xl border border-neutral-800 bg-neutral-900 p-3 shadow-sm">
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-xs font-medium text-neutral-500">{a.tema_nome ?? "Sem tema"}</p>
                   <CopiarBotao texto={blocoParaIA(a.tema_nome, a.data, a.conteudo_md)} />
                 </div>
-                <p className="mt-1 text-sm text-neutral-800 whitespace-pre-wrap">{a.conteudo_md}</p>
+                <p className="mt-1 text-sm text-neutral-200 whitespace-pre-wrap">{a.conteudo_md}</p>
               </div>
             ))}
           </div>

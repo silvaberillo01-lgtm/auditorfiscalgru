@@ -33,9 +33,9 @@ export default function QuestaoForm({ temaId, questao }: { temaId: string; quest
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-4 space-y-3">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 space-y-3">
       <Toast info={toast} onDone={() => setToast(null)} />
-      <p className="font-medium">{questao.enunciado}</p>
+      <p className="font-medium text-neutral-100">{questao.enunciado}</p>
       <div className="space-y-2">
         {alternativas.map((alt) => {
           const isSelecionada = selecionada === alt.letra;
@@ -45,12 +45,12 @@ export default function QuestaoForm({ temaId, questao }: { temaId: string; quest
               key={alt.letra}
               disabled={respondida || pending}
               onClick={() => responder(alt.letra)}
-              className={`block w-full text-left rounded border px-3 py-2 text-sm ${
+              className={`block w-full text-left rounded-lg border px-3 py-2 text-sm ${
                 isGabarito
-                  ? "border-emerald-400 bg-emerald-50"
+                  ? "border-[#5E9E6F] bg-[#5E9E6F1a] text-neutral-100"
                   : isSelecionada
-                    ? "border-red-400 bg-red-50"
-                    : "border-neutral-200 hover:bg-neutral-50"
+                    ? "border-[#E2574C] bg-[#E2574C1a] text-neutral-100"
+                    : "border-neutral-700 text-neutral-300 hover:bg-neutral-800"
               } disabled:cursor-default`}
             >
               <span className="font-medium">{alt.letra})</span> {alt.texto}
@@ -59,7 +59,11 @@ export default function QuestaoForm({ temaId, questao }: { temaId: string; quest
         })}
       </div>
       {respondida && (
-        <div className={`text-sm rounded p-3 ${correta ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-800"}`}>
+        <div
+          className={`text-sm rounded-lg p-3 ${
+            correta ? "bg-[#5E9E6F14] text-[#8ec49c]" : "bg-[#E2574C14] text-[#ef8880]"
+          }`}
+        >
           <p className="font-medium">{correta ? "Acertou!" : `Errou — gabarito: ${questao.gabarito}`}</p>
           {questao.explicacao && <p className="mt-1">{questao.explicacao}</p>}
           {questao.fonte && <p className="mt-1 text-xs opacity-70">Fonte: {questao.fonte}</p>}

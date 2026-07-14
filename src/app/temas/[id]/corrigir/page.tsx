@@ -30,7 +30,7 @@ export default async function CorrigirPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">{tema.nome} — Corrigir erros</h1>
+      <h1 className="text-xl font-semibold text-neutral-100">{tema.nome} — Corrigir erros</h1>
       {(respostasErradas ?? []).length === 0 && (
         <p className="text-sm text-neutral-500">Nenhum erro pendente de correção.</p>
       )}

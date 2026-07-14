@@ -8,7 +8,7 @@ export default async function AnotacoesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Anotações</h1>
+      <h1 className="text-xl font-semibold text-neutral-100">Anotações</h1>
       <AnotacoesList anotacoes={anotacoes} temas={temas} />
     </div>
   );

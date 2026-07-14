@@ -36,7 +36,7 @@ export default async function RevisarPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Revisar</h1>
+      <h1 className="text-xl font-semibold text-neutral-100">Revisar</h1>
       <FlashcardQueue cards={cards} />
     </div>
   );

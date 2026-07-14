@@ -4,7 +4,7 @@ import { requireAprovado } from "@/lib/auth";
 import { getTema, getAnotacoesDoTema } from "@/lib/queries";
 import type { Questao } from "@/lib/types";
 import NotesPanel from "@/components/notes-panel";
-import QuestaoForm from "./questao-form";
+import QuestoesTabs from "./questoes-tabs";
 
 export default async function QuestoesPage({
   params,
@@ -24,18 +24,15 @@ export default async function QuestoesPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">{tema.nome} — Questões</h1>
+      <h1 className="text-xl font-semibold text-neutral-100">{tema.nome} — Questões</h1>
 
       <NotesPanel temaId={id} temaNome={tema.nome} anotacoes={anotacoes} />
 
-      {(questoes ?? []).length === 0 && (
+      {(questoes ?? []).length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma questão cadastrada para este tema ainda.</p>
+      ) : (
+        <QuestoesTabs temaId={id} questoes={questoes as Questao[]} />
       )}
-      <div className="space-y-4">
-        {(questoes as Questao[] | null)?.map((q) => (
-          <QuestaoForm key={q.id} temaId={id} questao={q} />
-        ))}
-      </div>
     </div>
   );
 }

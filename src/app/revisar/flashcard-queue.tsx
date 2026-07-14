@@ -91,7 +91,7 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
   if (indice >= cards.length) {
     return (
       <>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+        <div className="rounded-2xl border border-[#5E9E6F33] bg-[#5E9E6F14] p-4 text-sm text-[#8ec49c]">
           Revisões de hoje concluídas!
         </div>
         <Toast info={toast} onDone={() => setToast(null)} />
@@ -129,7 +129,7 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
     <div className="space-y-4">
       <Toast info={toast} onDone={() => setToast(null)} />
       {offline && (
-        <p className="text-xs rounded bg-amber-50 border border-amber-200 px-2 py-1 text-amber-700">
+        <p className="text-xs rounded-full bg-[#D9A84E1a] border border-[#D9A84E33] px-3 py-1.5 text-[#e8c179]">
           Sem conexão — suas respostas ficam guardadas e sincronizam automaticamente quando
           voltar o sinal.
         </p>
@@ -139,13 +139,13 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
       </p>
       <div
         onClick={() => setVirado((v) => !v)}
-        className="min-h-40 cursor-pointer rounded-lg border border-neutral-200 bg-white p-6 flex items-center justify-center text-center"
+        className="min-h-40 cursor-pointer rounded-2xl border border-neutral-800 bg-neutral-900 p-6 flex items-center justify-center text-center"
       >
         {!virado ? (
-          <p className="font-medium">{card.pergunta}</p>
+          <p className="font-medium text-neutral-100">{card.pergunta}</p>
         ) : (
           <div
-            className="prose prose-sm max-w-none"
+            className="prose prose-sm prose-invert max-w-none"
             dangerouslySetInnerHTML={{ __html: card.resposta_html }}
           />
         )}
@@ -153,7 +153,7 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
       {!virado ? (
         <button
           onClick={() => setVirado(true)}
-          className="w-full rounded border border-neutral-300 px-4 py-2 text-sm hover:bg-neutral-50"
+          className="w-full rounded-full border border-neutral-700 px-4 py-2 text-sm text-neutral-200 hover:bg-neutral-800"
         >
           Mostrar resposta
         </button>
@@ -162,14 +162,14 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           <button
             disabled={pending}
             onClick={() => avaliar(false)}
-            className="flex-1 rounded bg-red-100 px-4 py-2 text-sm text-red-800 hover:bg-red-200 disabled:opacity-50"
+            className="flex-1 rounded-full bg-[#E2574C1f] px-4 py-2 text-sm font-medium text-[#ef8880] hover:bg-[#E2574C33] disabled:opacity-50"
           >
             Errei
           </button>
           <button
             disabled={pending}
             onClick={() => avaliar(true)}
-            className="flex-1 rounded bg-emerald-100 px-4 py-2 text-sm text-emerald-800 hover:bg-emerald-200 disabled:opacity-50"
+            className="flex-1 rounded-full bg-[#5E9E6F1f] px-4 py-2 text-sm font-medium text-[#8ec49c] hover:bg-[#5E9E6F33] disabled:opacity-50"
           >
             Acertei
           </button>

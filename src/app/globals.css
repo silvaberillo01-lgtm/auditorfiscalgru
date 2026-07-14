@@ -2,8 +2,8 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  --background: #fafafa;
-  --foreground: #171717;
+  --background: #0a0a0c;
+  --foreground: #f2f2f3;
 }
 
 @theme inline {
@@ -17,6 +17,10 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+::selection {
+  background: #4e8fd94d;
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;
@@ -26,4 +30,9 @@ body {
     opacity: 1;
     transform: translate(-50%, 0);
   }
+}
+
+.prose-invert :where(code):not(:where([class~="not-prose"] *))::before,
+.prose-invert :where(code):not(:where([class~="not-prose"] *))::after {
+  content: none;
 }

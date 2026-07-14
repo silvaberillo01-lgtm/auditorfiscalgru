@@ -19,8 +19,8 @@ export default async function AguardandoPage() {
 
   return (
     <div className="max-w-sm mx-auto mt-12 space-y-4 text-center">
-      <h1 className="text-xl font-semibold">Aguardando liberação</h1>
-      <p className="text-sm text-neutral-600">
+      <h1 className="text-xl font-semibold text-neutral-100">Aguardando liberação</h1>
+      <p className="text-sm text-neutral-400">
         Sua conta ({user.email}) ainda não foi liberada. Peça pro admin aprovar seu acesso.
       </p>
       <LogoutButton />

@@ -21,7 +21,7 @@ export default function ResumoActions({ temaId }: { temaId: string }) {
             router.refresh();
           })
         }
-        className="rounded bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-50"
+        className="rounded-full bg-[#4E8FD9] px-4 py-2 text-sm font-medium text-white hover:bg-[#3f7ac2] disabled:opacity-50"
       >
         {pending ? "Salvando..." : "Terminei o resumo"}
       </button>

@@ -27,7 +27,7 @@ export default function CorrigirForm({
   if (enviado) {
     return (
       <>
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+        <div className="rounded-2xl border border-[#5E9E6F33] bg-[#5E9E6F14] p-4 text-sm text-[#8ec49c]">
           Correção salva.
         </div>
         <Toast info={toast} onDone={() => setToast(null)} />
@@ -36,17 +36,17 @@ export default function CorrigirForm({
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-4 space-y-3">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 space-y-3">
       <Toast info={toast} onDone={() => setToast(null)} />
-      <p className="font-medium">{enunciado}</p>
-      {gabarito && <p className="text-sm text-neutral-600">Gabarito: {gabarito}</p>}
-      {explicacao && <p className="text-sm text-neutral-600">{explicacao}</p>}
+      <p className="font-medium text-neutral-100">{enunciado}</p>
+      {gabarito && <p className="text-sm text-neutral-400">Gabarito: {gabarito}</p>}
+      {explicacao && <p className="text-sm text-neutral-400">{explicacao}</p>}
       <textarea
         value={raciocinio}
         onChange={(e) => setRaciocinio(e.target.value)}
         placeholder="Por que errei? O que preciso lembrar da próxima vez?"
         rows={3}
-        className="w-full rounded border border-neutral-300 p-2 text-sm"
+        className="w-full rounded border border-neutral-700 bg-neutral-950 p-2 text-sm text-neutral-100 placeholder:text-neutral-500"
       />
       <button
         disabled={pending || raciocinio.trim().length === 0}
@@ -58,7 +58,7 @@ export default function CorrigirForm({
             router.refresh();
           })
         }
-        className="rounded bg-neutral-900 px-4 py-2 text-sm text-white hover:bg-neutral-700 disabled:opacity-50"
+        className="rounded-full bg-[#E2574C] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
       >
         Salvar correção
       </button>

@@ -206,16 +206,21 @@ continuam exigindo conexão.
 - `src/app/page.tsx` — dashboard "hoje": card principal com a ação mais
   urgente (revisões atrasadas > tema da semana), card secundário, anel de
   progresso da prova e streak.
-- `src/app/temas/` — listagem de temas, resumo (com painel de anotações),
-  questões (idem), correção.
+- `src/app/temas/` — dashboard de forças e fraquezas por área (% de
+  acerto, cobertura, "sem cobertura ainda", visão geral), resumo (com
+  painel de anotações), questões com abas Reais/Variações IBAM, correção.
 - `src/app/revisar/` — fila de revisão de flashcards, com cache offline
   (`public/sw.js` + `src/lib/offline-queue.ts`).
 - `src/app/anotacoes/` — todas as anotações, agrupadas por data, com
   filtro por tema e botão de copiar (individual ou do dia todo) em
   formato markdown pronto pra colar numa IA.
+- `src/app/principios/` — as 6 regras de como estudar (conteúdo estático,
+  vem do guia antigo).
 - `src/components/toast.tsx` — toast motivacional que aparece quando uma
   fase fecha (terminar resumo, zerar questões, fechar correção, dominar
   os flashcards de um tema).
+- Tema escuro em todo o app, com a mesma paleta de cores por categoria do
+  guia antigo (azul/dourado/vermelho/verde/roxo) — ver `src/lib/fase-ui.ts`.
 
 ## O que falta você preencher
 

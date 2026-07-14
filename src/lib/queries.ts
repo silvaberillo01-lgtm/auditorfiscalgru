@@ -220,3 +220,52 @@ export async function getAnotacoesComTema(userId: string) {
     tema_nome: (a as unknown as { temas: { nome: string } | null }).temas?.nome ?? null,
   }));
 }
+
+export type EstatisticaTema = { totalQuestoes: number; respondidas: number; acertos: number };
+
+/** Forças e fraquezas: quantas questões cada tema tem, quantas foram respondidas e com que aproveitamento. */
+export async function getEstatisticasPorTema(userId: string) {
+  const supabase = await createClient();
+  const [{ data: questoes }, { data: respostas }] = await Promise.all([
+    supabase.from("questoes").select("id, tema_id"),
+    supabase
+      .from("respostas")
+      .select("questao_id, correta, respondida_em")
+      .eq("user_id", userId)
+      .order("respondida_em", { ascending: false }),
+  ]);
+
+  const temaPorQuestao = new Map<string, string>();
+  const porTema = new Map<string, EstatisticaTema>();
+  for (const q of questoes ?? []) {
+    temaPorQuestao.set(q.id, q.tema_id);
+    const atual = porTema.get(q.tema_id) ?? { totalQuestoes: 0, respondidas: 0, acertos: 0 };
+    atual.totalQuestoes += 1;
+    porTema.set(q.tema_id, atual);
+  }
+
+  // última resposta por questão (o estado atual, não cada tentativa)
+  const ultimaPorQuestao = new Map<string, boolean>();
+  for (const r of respostas ?? []) {
+    if (!ultimaPorQuestao.has(r.questao_id)) ultimaPorQuestao.set(r.questao_id, !!r.correta);
+  }
+
+  for (const [questaoId, correta] of ultimaPorQuestao) {
+    const temaId = temaPorQuestao.get(questaoId);
+    if (!temaId) continue;
+    const atual = porTema.get(temaId)!;
+    atual.respondidas += 1;
+    if (correta) atual.acertos += 1;
+  }
+
+  const totalRespondidas = ultimaPorQuestao.size;
+  const totalAcertos = [...ultimaPorQuestao.values()].filter(Boolean).length;
+
+  return {
+    porTema,
+    totalQuestoes: questoes?.length ?? 0,
+    totalRespondidas,
+    totalAcertos,
+    totalErros: totalRespondidas - totalAcertos,
+  };
+}

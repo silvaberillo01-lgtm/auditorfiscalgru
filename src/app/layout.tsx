@@ -37,25 +37,28 @@ export default async function RootLayout({
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-neutral-50 text-neutral-900">
+      <body className="min-h-full flex flex-col bg-neutral-950 text-neutral-100">
         <RegisterSW />
         {user && (
-          <header className="border-b border-neutral-200 bg-white">
-            <nav className="max-w-3xl mx-auto flex items-center gap-4 px-4 py-3 text-sm">
-              <Link href="/" className="font-semibold text-neutral-900">
+          <header className="border-b border-neutral-800 bg-neutral-900/60 backdrop-blur">
+            <nav className="max-w-3xl mx-auto flex items-center gap-5 px-4 py-3 text-sm">
+              <Link href="/" className="font-semibold text-neutral-100">
                 Hoje
               </Link>
-              <Link href="/temas" className="text-neutral-600 hover:text-neutral-900">
+              <Link href="/temas" className="text-neutral-400 hover:text-neutral-100">
                 Temas
               </Link>
-              <Link href="/revisar" className="text-neutral-600 hover:text-neutral-900">
+              <Link href="/revisar" className="text-neutral-400 hover:text-neutral-100">
                 Revisar
               </Link>
-              <Link href="/anotacoes" className="text-neutral-600 hover:text-neutral-900">
+              <Link href="/anotacoes" className="text-neutral-400 hover:text-neutral-100">
                 Anotações
               </Link>
+              <Link href="/principios" className="text-neutral-400 hover:text-neutral-100">
+                Princípios
+              </Link>
               <span className="flex-1" />
-              <span className="text-xs text-neutral-400">{user.email}</span>
+              <span className="text-xs text-neutral-500">{user.email}</span>
               <LogoutButton />
             </nav>
           </header>

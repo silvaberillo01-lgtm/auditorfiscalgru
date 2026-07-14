@@ -6,7 +6,7 @@ import {
   getProgressoProva,
   getStreak,
 } from "@/lib/queries";
-import { FASE_BADGE, FASE_BADGE_LABEL, rotaDaFase, labelAcaoDaFase } from "@/lib/fase-ui";
+import { FASE_BADGE, FASE_BADGE_LABEL, FASE_SOLIDA, rotaDaFase, labelAcaoDaFase } from "@/lib/fase-ui";
 import ProgressRing from "@/components/progress-ring";
 
 export default async function HojePage() {
@@ -24,9 +24,9 @@ export default async function HojePage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Hoje</h1>
+        <h1 className="text-xl font-semibold text-neutral-100">Hoje</h1>
         {streak > 0 && (
-          <span className="flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-sm font-semibold text-orange-600">
+          <span className="flex items-center gap-1 rounded-full bg-[#D9A84E1f] px-3 py-1 text-sm font-semibold text-[#e8c179]">
             🔥 {streak} dia{streak === 1 ? "" : "s"}
           </span>
         )}
@@ -34,12 +34,12 @@ export default async function HojePage() {
 
       {/* Card principal */}
       {temRevisoes ? (
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <span className="inline-block rounded-full bg-green-100 px-2.5 py-1 text-xs font-bold tracking-wide text-green-700">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
+          <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold tracking-wide ${FASE_BADGE.espacando}`}>
             {FASE_BADGE_LABEL.espacando}
           </span>
-          <p className="mt-3 text-2xl font-bold text-neutral-900">Hoje é dia de revisar</p>
-          <ul className="mt-3 space-y-1 text-sm text-neutral-600">
+          <p className="mt-3 text-2xl font-bold text-neutral-100">Hoje é dia de revisar</p>
+          <ul className="mt-3 space-y-1 text-sm text-neutral-400">
             {[...revisoes.entries()].map(([temaId, info]) => (
               <li key={temaId}>
                 {info.nome} — {info.count} card{info.count === 1 ? "" : "s"}
@@ -48,31 +48,31 @@ export default async function HojePage() {
           </ul>
           <Link
             href="/revisar"
-            className="mt-5 inline-block rounded-full bg-green-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-green-700"
+            className={`mt-5 inline-block rounded-full ${FASE_SOLIDA.espacando} px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90`}
           >
             Revisar agora ({totalRevisoes})
           </Link>
         </div>
       ) : temaDaSemana ? (
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm">
           <span
             className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold tracking-wide ${FASE_BADGE[temaDaSemana.fase]}`}
           >
             {FASE_BADGE_LABEL[temaDaSemana.fase]}
           </span>
-          <p className="mt-3 text-2xl font-bold text-neutral-900">{temaDaSemana.tema.nome}</p>
+          <p className="mt-3 text-2xl font-bold text-neutral-100">{temaDaSemana.tema.nome}</p>
           <p className="mt-1 text-sm text-neutral-500">Tema da semana — semana {temaDaSemana.semana}</p>
           <Link
             href={rotaDaFase(temaDaSemana.tema.id, temaDaSemana.fase)}
-            className="mt-5 inline-block rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-neutral-700"
+            className={`mt-5 inline-block rounded-full ${FASE_SOLIDA[temaDaSemana.fase]} px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90`}
           >
             {labelAcaoDaFase(temaDaSemana.fase)}
           </Link>
         </div>
       ) : (
-        <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm text-sm text-neutral-600">
+        <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-6 shadow-sm text-sm text-neutral-400">
           Sem revisões pendentes e sem plano definido para hoje.{" "}
-          <Link href="/temas" className="text-blue-600 hover:underline">
+          <Link href="/temas" className="text-[#7db0ea] hover:underline">
             Escolha um tema para estudar
           </Link>
           .
@@ -83,10 +83,10 @@ export default async function HojePage() {
       {temRevisoes && temaDaSemana && (
         <Link
           href={rotaDaFase(temaDaSemana.tema.id, temaDaSemana.fase)}
-          className="flex items-center justify-between rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-sm hover:border-neutral-300"
+          className="flex items-center justify-between rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3 shadow-sm hover:border-neutral-700"
         >
           <div>
-            <p className="text-sm font-medium text-neutral-900">{temaDaSemana.tema.nome}</p>
+            <p className="text-sm font-medium text-neutral-100">{temaDaSemana.tema.nome}</p>
             <p className="text-xs text-neutral-500">Tema da semana {temaDaSemana.semana}</p>
           </div>
           <span
@@ -98,11 +98,11 @@ export default async function HojePage() {
       )}
 
       {/* Progresso da prova */}
-      <div className="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center gap-4 rounded-2xl border border-neutral-800 bg-neutral-900 p-5 shadow-sm">
         <ProgressRing pct={progressoProva.pct} />
         <div>
           <p className="text-sm text-neutral-500">Progresso da prova</p>
-          <p className="text-sm text-neutral-700">
+          <p className="text-sm text-neutral-300">
             {progressoProva.temasDominados} de {progressoProva.totalTemas} temas cobertos
           </p>
         </div>
