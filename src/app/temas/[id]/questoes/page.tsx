@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAprovado } from "@/lib/auth";
 import { getTema, getAnotacoesDoTema, getRespostasDoTema } from "@/lib/queries";
+import { verificarConclusaoTeste } from "@/lib/engine";
 import type { Questao } from "@/lib/types";
 import NotesPanel from "@/components/notes-panel";
 import QuestoesTabs from "./questoes-tabs";
@@ -15,6 +16,10 @@ export default async function QuestoesPage({
   const { user } = await requireAprovado();
   const tema = await getTema(id);
   if (!tema) notFound();
+
+  // reavalia se as reais já foram todas respondidas (cobre quem ficou
+  // preso em "testando" antes das variações virarem opcionais)
+  await verificarConclusaoTeste(user.id, id);
 
   const supabase = await createClient();
   const [{ data: questoes }, anotacoes, respostasSalvas] = await Promise.all([

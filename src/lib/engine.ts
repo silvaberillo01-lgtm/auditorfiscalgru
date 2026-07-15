@@ -83,24 +83,14 @@ export async function marcarResumoConcluido(userId: string, temaId: string): Pro
   return true;
 }
 
-/** Grava a resposta de uma questão. Retorna true se o tema virou "corrigindo" agora. */
-export async function registrarResposta(params: {
-  userId: string;
-  temaId: string;
-  questaoId: string;
-  resposta: string;
-  correta: boolean;
-}): Promise<boolean> {
-  const { userId, temaId, questaoId, resposta, correta } = params;
+/**
+ * Verifica se todas as questões "reais" do tema já foram respondidas e, se
+ * sim, avança testando -> corrigindo. Variações são treino extra opcional e
+ * não travam o progresso. Seguro pra chamar a qualquer momento (idempotente
+ * — só mexe em nada se a fase não for "testando" ou já estiver completo).
+ */
+export async function verificarConclusaoTeste(userId: string, temaId: string): Promise<boolean> {
   const supabase = await createClient();
-
-  await supabase.from("respostas").insert({
-    user_id: userId,
-    questao_id: questaoId,
-    resposta,
-    correta,
-  });
-  await registrarAtividade(supabase, userId);
 
   const progresso = await garantirProgresso(supabase, userId, temaId);
   if (progresso.fase !== "testando") return false;
@@ -108,7 +98,8 @@ export async function registrarResposta(params: {
   const { data: questoes } = await supabase
     .from("questoes")
     .select("id")
-    .eq("tema_id", temaId);
+    .eq("tema_id", temaId)
+    .eq("origem", "real");
   const totalQuestoes = questoes?.length ?? 0;
   if (totalQuestoes === 0) return false;
 
@@ -142,6 +133,28 @@ export async function registrarResposta(params: {
     .eq("user_id", userId)
     .eq("tema_id", temaId);
   return true;
+}
+
+/** Grava a resposta de uma questão. Retorna true se o tema virou "corrigindo" agora. */
+export async function registrarResposta(params: {
+  userId: string;
+  temaId: string;
+  questaoId: string;
+  resposta: string;
+  correta: boolean;
+}): Promise<boolean> {
+  const { userId, temaId, questaoId, resposta, correta } = params;
+  const supabase = await createClient();
+
+  await supabase.from("respostas").insert({
+    user_id: userId,
+    questao_id: questaoId,
+    resposta,
+    correta,
+  });
+  await registrarAtividade(supabase, userId);
+
+  return verificarConclusaoTeste(userId, temaId);
 }
 
 /** Preenche o raciocínio de uma resposta errada. Retorna true se virou "espacando" agora. */

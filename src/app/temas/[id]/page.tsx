@@ -8,6 +8,7 @@ import {
   getProgresso,
   getAnotacoesDoTema,
   getErrosCorrigidosDoTema,
+  getErrosPendentesCount,
   getSemanaDoTema,
   fasesLabel,
 } from "@/lib/queries";
@@ -17,6 +18,7 @@ import NotesPanel from "@/components/notes-panel";
 import ErrosResumoPanel from "@/components/erros-resumo-panel";
 import DeadlineBadge from "@/components/deadline-badge";
 import PhaseStepper from "@/components/phase-stepper";
+import { verificarConclusaoTeste } from "@/lib/engine";
 import OpenTracker from "./open-tracker";
 import ResumoActions from "./resumo-actions";
 import EsquecerButton from "./esquecer-button";
@@ -29,20 +31,26 @@ export default async function TemaPage({
   const { id } = await params;
   const { user } = await requireAprovado();
   const supabase = await createClient();
-  const [tema, progresso, { data: resumos }, anotacoes, erros, semana] = await Promise.all([
+
+  // reavalia se as reais já foram todas respondidas (cobre quem ficou
+  // preso em "testando" antes das variações virarem opcionais)
+  await verificarConclusaoTeste(user.id, id);
+
+  const [tema, progresso, { data: resumos }, anotacoes, erros, semana, errosPendentes] = await Promise.all([
     getTema(id),
     getProgresso(user.id, id),
     supabase.from("resumos").select("*").eq("tema_id", id),
     getAnotacoesDoTema(user.id, id),
     getErrosCorrigidosDoTema(user.id, id),
     getSemanaDoTema(user.id, id),
+    getErrosPendentesCount(user.id, id),
   ]);
 
   if (!tema) notFound();
 
   const mostrarBotaoConcluir = progresso.fase === "entendendo" || progresso.fase === "nao_iniciado";
   const podeTestar = progresso.fase === "testando" || progresso.fase === "corrigindo" || progresso.fase === "espacando" || progresso.fase === "dominado";
-  const podeCorrigir = progresso.fase === "corrigindo";
+  const podeCorrigir = podeTestar && errosPendentes > 0;
 
   return (
     <div className="space-y-6">
@@ -74,7 +82,7 @@ export default async function TemaPage({
             href={`/temas/${id}/corrigir`}
             className="rounded-full bg-[#E2574C1f] px-4 py-2 text-sm text-[#ef8880] hover:bg-[#E2574C33]"
           >
-            Corrigir erros
+            Corrigir erros ({errosPendentes})
           </Link>
         )}
         {podeTestar && (

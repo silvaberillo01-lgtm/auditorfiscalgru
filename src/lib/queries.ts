@@ -380,3 +380,21 @@ export async function getErrosCorrigidosDoTema(userId: string, temaId: string) {
     } | null,
   }));
 }
+
+/** Quantos erros já respondidos ainda não têm raciocínio escrito (pra mostrar o link de corrigir). */
+export async function getErrosPendentesCount(userId: string, temaId: string): Promise<number> {
+  const supabase = await createClient();
+  const { data: questoes } = await supabase.from("questoes").select("id").eq("tema_id", temaId);
+  const questaoIds = (questoes ?? []).map((q) => q.id);
+  if (questaoIds.length === 0) return 0;
+
+  const { count } = await supabase
+    .from("respostas")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .in("questao_id", questaoIds)
+    .eq("correta", false)
+    .is("raciocinio", null);
+
+  return count ?? 0;
+}
