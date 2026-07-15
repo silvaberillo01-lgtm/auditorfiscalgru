@@ -3,12 +3,14 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { createClient } from "@/lib/supabase/server";
 import { requireAprovado } from "@/lib/auth";
-import { getTema, getProgresso, getAnotacoesDoTema, fasesLabel } from "@/lib/queries";
+import { getTema, getProgresso, getAnotacoesDoTema, getErrosCorrigidosDoTema, fasesLabel } from "@/lib/queries";
 import { FASE_BADGE } from "@/lib/fase-ui";
 import type { Resumo } from "@/lib/types";
 import NotesPanel from "@/components/notes-panel";
+import ErrosResumoPanel from "@/components/erros-resumo-panel";
 import OpenTracker from "./open-tracker";
 import ResumoActions from "./resumo-actions";
+import EsquecerButton from "./esquecer-button";
 
 export default async function TemaPage({
   params,
@@ -18,11 +20,12 @@ export default async function TemaPage({
   const { id } = await params;
   const { user } = await requireAprovado();
   const supabase = await createClient();
-  const [tema, progresso, { data: resumos }, anotacoes] = await Promise.all([
+  const [tema, progresso, { data: resumos }, anotacoes, erros] = await Promise.all([
     getTema(id),
     getProgresso(user.id, id),
     supabase.from("resumos").select("*").eq("tema_id", id),
     getAnotacoesDoTema(user.id, id),
+    getErrosCorrigidosDoTema(user.id, id),
   ]);
 
   if (!tema) notFound();
@@ -44,7 +47,7 @@ export default async function TemaPage({
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {podeTestar && (
           <Link
             href={`/temas/${id}/questoes`}
@@ -60,6 +63,12 @@ export default async function TemaPage({
           >
             Corrigir erros
           </Link>
+        )}
+        {podeTestar && (
+          <>
+            <span className="text-neutral-700">·</span>
+            <EsquecerButton temaId={id} temaNome={tema.nome} />
+          </>
         )}
       </div>
 
@@ -87,6 +96,8 @@ export default async function TemaPage({
       ))}
 
       {mostrarBotaoConcluir && <ResumoActions temaId={id} />}
+
+      <ErrosResumoPanel temaNome={tema.nome} erros={erros} />
 
       <NotesPanel temaId={id} temaNome={tema.nome} anotacoes={anotacoes} />
     </div>

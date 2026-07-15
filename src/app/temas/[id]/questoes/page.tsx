@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAprovado } from "@/lib/auth";
-import { getTema, getAnotacoesDoTema } from "@/lib/queries";
+import { getTema, getAnotacoesDoTema, getRespostasDoTema } from "@/lib/queries";
 import type { Questao } from "@/lib/types";
 import NotesPanel from "@/components/notes-panel";
 import QuestoesTabs from "./questoes-tabs";
@@ -17,9 +17,10 @@ export default async function QuestoesPage({
   if (!tema) notFound();
 
   const supabase = await createClient();
-  const [{ data: questoes }, anotacoes] = await Promise.all([
+  const [{ data: questoes }, anotacoes, respostasSalvas] = await Promise.all([
     supabase.from("questoes").select("*").eq("tema_id", id),
     getAnotacoesDoTema(user.id, id),
+    getRespostasDoTema(user.id, id),
   ]);
 
   return (
@@ -31,7 +32,11 @@ export default async function QuestoesPage({
       {(questoes ?? []).length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma questão cadastrada para este tema ainda.</p>
       ) : (
-        <QuestoesTabs temaId={id} questoes={questoes as Questao[]} />
+        <QuestoesTabs
+          temaId={id}
+          questoes={questoes as Questao[]}
+          respostasSalvas={Object.fromEntries(respostasSalvas)}
+        />
       )}
     </div>
   );

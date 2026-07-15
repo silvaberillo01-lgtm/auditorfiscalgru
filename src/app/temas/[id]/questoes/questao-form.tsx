@@ -6,9 +6,17 @@ import { registrarRespostaAction } from "@/app/actions";
 import type { Questao } from "@/lib/types";
 import Toast, { type ToastInfo } from "@/components/toast";
 
-export default function QuestaoForm({ temaId, questao }: { temaId: string; questao: Questao }) {
-  const [selecionada, setSelecionada] = useState<string | null>(null);
-  const [respondida, setRespondida] = useState(false);
+export default function QuestaoForm({
+  temaId,
+  questao,
+  respostaSalva,
+}: {
+  temaId: string;
+  questao: Questao;
+  respostaSalva?: string | null;
+}) {
+  const [selecionada, setSelecionada] = useState<string | null>(respostaSalva ?? null);
+  const [respondida, setRespondida] = useState(!!respostaSalva);
   const [pending, startTransition] = useTransition();
   const [toast, setToast] = useState<ToastInfo>(null);
   const router = useRouter();

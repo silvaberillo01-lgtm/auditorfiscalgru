@@ -94,3 +94,13 @@ export async function excluirAnotacaoAction(anotacaoId: string, temaId: string |
   }
   revalidatePath("/anotacoes");
 }
+
+export async function esquecerRespostasAction(temaId: string) {
+  const { user } = await requireAprovadoAction();
+  await engine.esquecerRespostasDoTema(user.id, temaId);
+  revalidatePath("/");
+  revalidatePath("/temas");
+  revalidatePath(`/temas/${temaId}`);
+  revalidatePath(`/temas/${temaId}/questoes`);
+  revalidatePath(`/temas/${temaId}/corrigir`);
+}

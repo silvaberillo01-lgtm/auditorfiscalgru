@@ -4,12 +4,22 @@ import { useState } from "react";
 import type { Questao } from "@/lib/types";
 import QuestaoForm from "./questao-form";
 
-export default function QuestoesTabs({ temaId, questoes }: { temaId: string; questoes: Questao[] }) {
+export default function QuestoesTabs({
+  temaId,
+  questoes,
+  respostasSalvas,
+}: {
+  temaId: string;
+  questoes: Questao[];
+  respostasSalvas: Record<string, string>;
+}) {
   const reais = questoes.filter((q) => q.origem === "real");
   const variacoes = questoes.filter((q) => q.origem === "variacao");
   const [aba, setAba] = useState<"real" | "variacao">(reais.length > 0 ? "real" : "variacao");
 
   const listaAtual = aba === "real" ? reais : variacoes;
+  const respondidasReais = reais.filter((q) => respostasSalvas[q.id]).length;
+  const respondidasVariacoes = variacoes.filter((q) => respostasSalvas[q.id]).length;
 
   return (
     <div className="space-y-4">
@@ -20,7 +30,7 @@ export default function QuestoesTabs({ temaId, questoes }: { temaId: string; que
             aba === "real" ? "bg-[#4E8FD9] text-white" : "text-neutral-400 hover:text-neutral-200"
           }`}
         >
-          Reais ({reais.length})
+          Reais ({respondidasReais}/{reais.length})
         </button>
         <button
           onClick={() => setAba("variacao")}
@@ -28,7 +38,7 @@ export default function QuestoesTabs({ temaId, questoes }: { temaId: string; que
             aba === "variacao" ? "bg-[#B97BD9] text-white" : "text-neutral-400 hover:text-neutral-200"
           }`}
         >
-          Variações IBAM ({variacoes.length})
+          Variações IBAM ({respondidasVariacoes}/{variacoes.length})
         </button>
       </div>
 
@@ -40,7 +50,7 @@ export default function QuestoesTabs({ temaId, questoes }: { temaId: string; que
 
       <div className="space-y-4">
         {listaAtual.map((q) => (
-          <QuestaoForm key={q.id} temaId={temaId} questao={q} />
+          <QuestaoForm key={q.id} temaId={temaId} questao={q} respostaSalva={respostasSalvas[q.id] ?? null} />
         ))}
       </div>
     </div>

@@ -288,3 +288,33 @@ export async function revisarFlashcard(params: {
   }
   return dominado;
 }
+
+/**
+ * Apaga todas as respostas do usuário nas questões desse tema e volta a
+ * fase pra "testando" (o resumo continua marcado como lido). Não mexe nos
+ * flashcards — a fila de espaçamento continua do jeito que estava.
+ */
+export async function esquecerRespostasDoTema(userId: string, temaId: string) {
+  const supabase = await createClient();
+
+  const { data: questoes } = await supabase.from("questoes").select("id").eq("tema_id", temaId);
+  const questaoIds = (questoes ?? []).map((q) => q.id);
+
+  if (questaoIds.length > 0) {
+    await supabase.from("respostas").delete().eq("user_id", userId).in("questao_id", questaoIds);
+  }
+
+  const progresso = await garantirProgresso(supabase, userId, temaId);
+  if (progresso.fase === "nao_iniciado" || progresso.fase === "entendendo") return;
+
+  await supabase
+    .from("tema_progresso")
+    .update({
+      fase: "testando" satisfies Fase,
+      testado_em: null,
+      pct_acerto: null,
+      corrigido_em: null,
+    })
+    .eq("user_id", userId)
+    .eq("tema_id", temaId);
+}

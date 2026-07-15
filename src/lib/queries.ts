@@ -269,3 +269,54 @@ export async function getEstatisticasPorTema(userId: string) {
     totalErros: totalRespondidas - totalAcertos,
   };
 }
+
+/** Última resposta de cada questão do tema, pra hidratar o caderno de questões já respondido. */
+export async function getRespostasDoTema(userId: string, temaId: string) {
+  const supabase = await createClient();
+  const { data: questoes } = await supabase.from("questoes").select("id").eq("tema_id", temaId);
+  const questaoIds = (questoes ?? []).map((q) => q.id);
+  if (questaoIds.length === 0) return new Map<string, string>();
+
+  const { data: respostas } = await supabase
+    .from("respostas")
+    .select("questao_id, resposta, respondida_em")
+    .eq("user_id", userId)
+    .in("questao_id", questaoIds)
+    .order("respondida_em", { ascending: false });
+
+  const ultimaPorQuestao = new Map<string, string>();
+  for (const r of respostas ?? []) {
+    if (!ultimaPorQuestao.has(r.questao_id) && r.resposta) {
+      ultimaPorQuestao.set(r.questao_id, r.resposta);
+    }
+  }
+  return ultimaPorQuestao;
+}
+
+/** Erros já corrigidos (com raciocínio preenchido) do tema, pra copiar pra uma IA depois. */
+export async function getErrosCorrigidosDoTema(userId: string, temaId: string) {
+  const supabase = await createClient();
+  const { data: questoes } = await supabase.from("questoes").select("id").eq("tema_id", temaId);
+  const questaoIds = (questoes ?? []).map((q) => q.id);
+  if (questaoIds.length === 0) return [];
+
+  const { data } = await supabase
+    .from("respostas")
+    .select("id, resposta, raciocinio, respondida_em, questoes(enunciado, gabarito, explicacao)")
+    .eq("user_id", userId)
+    .in("questao_id", questaoIds)
+    .eq("correta", false)
+    .not("raciocinio", "is", null)
+    .order("respondida_em", { ascending: false });
+
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    resposta: r.resposta as string | null,
+    raciocinio: r.raciocinio as string | null,
+    questao: r.questoes as unknown as {
+      enunciado: string;
+      gabarito: string | null;
+      explicacao: string | null;
+    } | null,
+  }));
+}
