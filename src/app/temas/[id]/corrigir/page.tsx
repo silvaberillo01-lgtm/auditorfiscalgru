@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAprovado } from "@/lib/auth";
 import { getTema } from "@/lib/queries";
+import CopiarErrosBrutos from "@/components/copiar-erros-brutos";
 import CorrigirForm from "./corrigir-form";
 
 export default async function CorrigirPage({
@@ -21,37 +22,59 @@ export default async function CorrigirPage({
   const { data: respostasErradas } = questaoIds.length
     ? await supabase
         .from("respostas")
-        .select("id, resposta, questao_id, questoes(enunciado, gabarito, explicacao)")
+        .select("id, resposta, questao_id, questoes(enunciado, alternativas, gabarito, explicacao)")
         .eq("user_id", user.id)
         .in("questao_id", questaoIds)
         .eq("correta", false)
         .is("raciocinio", null)
     : { data: [] };
 
+  const questoesInfo = (respostasErradas ?? []).map((r) => {
+    const q = r.questoes as unknown as {
+      enunciado: string;
+      alternativas: { letra: string; texto: string }[] | null;
+      gabarito: string | null;
+      explicacao: string | null;
+    } | null;
+    return {
+      id: r.id,
+      resposta: r.resposta as string | null,
+      enunciado: q?.enunciado ?? "",
+      alternativas: q?.alternativas ?? null,
+      gabarito: q?.gabarito ?? null,
+      explicacao: q?.explicacao ?? null,
+    };
+  });
+
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-neutral-100">{tema.nome} — Corrigir erros</h1>
-      {(respostasErradas ?? []).length === 0 && (
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-neutral-100">{tema.nome} — Corrigir erros</h1>
+        <CopiarErrosBrutos temaNome={tema.nome} erros={questoesInfo} />
+      </div>
+
+      {questoesInfo.length === 0 && (
         <p className="text-sm text-neutral-500">Nenhum erro pendente de correção.</p>
       )}
+
+      {questoesInfo.length > 0 && (
+        <p className="text-sm text-neutral-500">
+          Dica: copie tudo pra uma IA debater antes de escrever seu raciocínio abaixo — às vezes o
+          erro é falta de aprofundamento no tema, não só distração.
+        </p>
+      )}
+
       <div className="space-y-4">
-        {(respostasErradas ?? []).map((r) => {
-          const q = r.questoes as unknown as {
-            enunciado: string;
-            gabarito: string | null;
-            explicacao: string | null;
-          } | null;
-          return (
-            <CorrigirForm
-              key={r.id}
-              temaId={id}
-              respostaId={r.id}
-              enunciado={q?.enunciado ?? ""}
-              gabarito={q?.gabarito ?? null}
-              explicacao={q?.explicacao ?? null}
-            />
-          );
-        })}
+        {questoesInfo.map((q) => (
+          <CorrigirForm
+            key={q.id}
+            temaId={id}
+            respostaId={q.id}
+            enunciado={q.enunciado}
+            gabarito={q.gabarito}
+            explicacao={q.explicacao}
+          />
+        ))}
       </div>
     </div>
   );
