@@ -15,10 +15,20 @@ function blocoParaIA(temaNome: string, erros: Erro[]) {
     if (e.resposta) linhas.push(`Você respondeu: ${e.resposta}`);
     if (e.questao?.gabarito) linhas.push(`Gabarito: ${e.questao.gabarito}`);
     if (e.questao?.explicacao) linhas.push(`Explicação: ${e.questao.explicacao}`);
-    if (e.raciocinio) linhas.push(`Seu raciocínio: ${e.raciocinio}`);
+    if (e.raciocinio) linhas.push(`Meu raciocínio na hora: ${e.raciocinio}`);
     return linhas.join("\n");
   });
-  return `## Erros — ${temaNome}\n\n${partes.join("\n\n")}`;
+
+  const instrucoes = `Sou leigo em "${temaNome}" — estou revisando pra um concurso e quero fixar esses pontos que já errei antes. Pra cada questão abaixo:
+
+1. Explique os termos técnicos como se eu nunca tivesse ouvido falar, sem definição de dicionário.
+2. Me dê uma analogia ou exemplo do dia a dia (fora da área) que ajude a fixar a lógica da regra.
+3. Se eu escrevi um raciocínio na hora, diga se ele estava certo, incompleto ou errado, e por quê.
+4. Termine com uma pergunta rápida de múltipla escolha pra eu testar se realmente entendi, sem me dar a resposta.
+
+Vá um de cada vez e espere eu responder antes de seguir pra próxima, se possível.`;
+
+  return `${instrucoes}\n\n${partes.join("\n\n")}`;
 }
 
 export default function ErrosResumoPanel({ temaNome, erros }: { temaNome: string; erros: Erro[] }) {

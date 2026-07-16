@@ -16,7 +16,16 @@ function blocoParaIA(temaNome: string, erros: ErroBruto[]) {
     return `### Questão ${i + 1}\n${e.enunciado}\n\n${alts}\n\nMinha resposta: ${e.resposta ?? "—"}\nGabarito: ${e.gabarito ?? "—"}`;
   });
 
-  return `Errei essas questões estudando "${temaNome}". Me ajuda a entender cada uma — por que a minha alternativa está errada e por que o gabarito está certo — e me aponta o que eu preciso aprofundar no tema:\n\n${questoes.join("\n\n")}`;
+  const instrucoes = `Sou leigo em "${temaNome}" — não tenho formação na área, então preciso que você explique como se eu nunca tivesse visto esses termos antes. Errei as questões abaixo estudando pra um concurso. Pra cada uma:
+
+1. Primeiro, liste os termos técnicos/jurídicos do enunciado e das alternativas que uma pessoa leiga não entenderia de cara, e explique cada um em 1-2 frases simples, sem definição de dicionário.
+2. Depois, me dê uma ANALOGIA ou exemplo do dia a dia (fora do direito/contabilidade) que ilustre a lógica por trás da regra — algo fácil de guardar na memória.
+3. Explique por que a alternativa que eu escolhi está errada e por que o gabarito está certo, conectando com a analogia.
+4. Se a questão tiver uma "pegadinha" (uma palavra ou detalhe que muda tudo), aponte exatamente qual foi e por quê.
+
+Não repita o texto da explicação como se eu já soubesse do que se trata — assuma que preciso do contexto desde o início. Pode ser direto e informal, o objetivo é eu conseguir explicar de volta com minhas palavras depois.`;
+
+  return `${instrucoes}\n\n${questoes.join("\n\n")}`;
 }
 
 export default function CopiarErrosBrutos({ temaNome, erros }: { temaNome: string; erros: ErroBruto[] }) {
