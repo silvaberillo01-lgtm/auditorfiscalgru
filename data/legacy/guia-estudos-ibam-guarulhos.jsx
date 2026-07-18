@@ -195,61 +195,177 @@ const RESUMOS = [
     ],
   },
   {
-    id: "muni1", titulo: "Legislação Municipal — ISS e IPTU (Guarulhos)", peso: 3, cor: "#5E9E6F",
-    intro: "O MAIOR peso da prova (20 questões peso 3). Lei seca de Guarulhos — pura memorização com entendimento. Prioridade máxima.",
+    id: "ctm", titulo: "CTM — Código Tributário Municipal (Lei 7.966/2021)", peso: 3, cor: "#5E9E6F",
+    intro: "É a lei-moldura de todos os tributos de Guarulhos: no Livro II, Título I, define de forma genérica a hipótese de incidência de ISSQN, IPTU e ITBI — mas não fixa alíquota nenhuma. Funciona para as leis específicas municipais como o CTN funciona para a Constituição.",
     secoes: [
       {
-        h: "ISS — Lei 5.986/2003 · pontos-chave",
-        p: "Fato gerador: prestação de serviço da lista anexa (LC 116). Contribuinte: o PRESTADOR (art. 8º). Base de cálculo: o PREÇO DO SERVIÇO (art. 10). Local do imposto: em regra, o do ESTABELECIMENTO PRESTADOR (art. 5º), com exceções (obra, limpeza, etc. = local da prestação). Alíquota MÍNIMA: 2% (art. 13-A). Solidariedade não comporta benefício de ordem (art. 9º, §2º).",
+        h: "Onde essa lei entra",
+        p: "O CTM é a moldura conceitual: descreve o que cada imposto alcança (fato gerador, base, contribuinte) em termos genéricos e deixa o número para as leis específicas — 2 a 5% de ISS (Lei 5.986/2003), 0,3 a 3,5% de IPTU (Lei 6.793/2010), 3% de ITBI (Lei 8.425/2025). Sempre que a questão pedir 'a alíquota', a resposta NÃO está no CTM; está na lei específica. O CTM é o mapa; as leis específicas são o preço.",
       },
       {
-        h: "ISS — detalhes que a banca cobra",
-        p: "Serviços em mais de uma alíquota sem escrituração separada → aplica-se a MAIS ELEVADA (art. 4º). O tomador pessoa jurídica é responsável solidário se não exigir nota/inscrição do prestador. MEI/ME/EPP têm tratamento diferenciado (Simples). Não incide sobre relação de emprego (isso é da LC 116, art. 2º).",
+        h: "Hipótese de incidência genérica dos 3 impostos",
+        p: "O Livro II, Título I trata dos impostos municipais. Para cada um o CTM fixa o núcleo: ISSQN incide sobre a prestação de serviço da lista anexa; IPTU sobre a propriedade, o domínio útil ou a posse de imóvel urbano; ITBI sobre a transmissão onerosa inter vivos de imóveis e direitos reais (salvo os de garantia). É o mesmo desenho do CTN e da Constituição, descido ao nível municipal.",
       },
       {
-        h: "IPTU — Lei 6.793/2010 · pontos-chave",
-        p: "Hipótese: propriedade, domínio útil ou posse de imóvel na zona urbana. Contribuinte: proprietário, titular do domínio útil OU possuidor a qualquer título (art. 7º). Base de cálculo: VALOR VENAL (art. 9º). Lançamento: DE OFÍCIO e anual, pelo Cadastro Fiscal Imobiliário (art. 27). Acordos particulares NÃO valem contra a Fazenda (art. 7º, §1º = art. 123 CTN).",
+        h: "IPTU — não incidência em zona urbana (art. 143)",
+        p: "Regra geral: imóvel em zona urbana paga IPTU. EXCETO quando, mesmo dentro da zona urbana, o imóvel é usado em exploração extrativa vegetal, agrícola, pecuária ou agroindustrial — nesse caso NÃO incide o IPTU (art. 143), porque a destinação econômica rural afasta o imposto urbano. É a exceção usada para pegar quem decorou 'zona urbana = IPTU' como regra absoluta.",
       },
       {
-        h: "IPTU — as alíquotas de Guarulhos (DECORAR)",
-        p: "RESIDENCIAL (progressivo por faixa de valor venal em UFG): 0,3% até 10 mil UFG; 0,5% de 10–20 mil; 0,8% de 20–40 mil; 1,0% de 40–60 mil; 1,4% acima de 60 mil. NÃO RESIDENCIAL: 0,8% até 20 mil; sobe até 2,0% acima de 300 mil. TERRENO (não edificado): 3,5% — a mais alta, contra especulação.",
+        h: "ITBI — os 12 incisos de incidência (art. 146)",
+        p: "O art. 146 lista 12 hipóteses de incidência do ITBI. Dois incisos são prediletos de prova por fugirem do óbvio 'compra e venda': a CESSÃO DE DIREITOS À SUCESSÃO (ceder onerosamente herança/quinhão ainda não partilhado incide ITBI) e a CESSÃO DE BENFEITORIAS construídas em terreno de terceiro (transmitir onerosamente a benfeitoria, mesmo sem o solo, incide). Guarde: transmissão onerosa de DIREITO sobre imóvel também é fato gerador, não só a do imóvel em si.",
+      },
+      {
+        h: "Definição de zona urbana (espelha o art. 32 §1º do CTN)",
+        p: "Para o imóvel ser 'urbano' (sujeito a IPTU, não a ITR), exige-se a presença de no MÍNIMO 2 dos 5 melhoramentos mantidos pelo poder público: (1) meio-fio ou calçamento com canalização de águas pluviais; (2) abastecimento de água; (3) rede de esgoto; (4) rede de iluminação pública; (5) escola primária ou posto de saúde a até 3 km. É a mesma régua do art. 32 §1º do CTN. Regra: 2 de 5 bastam — EXCETO a hipótese de destinação rural do art. 143, que afasta o IPTU ainda que os melhoramentos existam.",
       },
     ],
     memorizar: [
+      "CTM = moldura: define O QUE incide (ISS/IPTU/ITBI), nunca a alíquota",
+      "IPTU: zona urbana incide, EXCETO uso extrativo/agrícola/pecuário/agroindustrial (art. 143)",
+      "ITBI art. 146: 12 incisos — lembrar cessão de direitos à sucessão e cessão de benfeitorias em terreno de terceiro",
+      "Zona urbana = mín. 2 de 5 melhoramentos (espelha art. 32 §1º CTN)",
+    ],
+  },
+  {
+    id: "muni1", titulo: "Legislação Municipal — ISS e IPTU (Guarulhos)", peso: 3, cor: "#5E9E6F",
+    intro: "As duas leis que colocam NÚMERO na moldura do CTM: o ISS (Lei 5.986/2003) fixa a alíquota e a base do imposto sobre serviços; o IPTU (Lei 6.793/2010) faz o mesmo para a propriedade urbana. Juntas são o maior peso da prova (20 questões peso 3) — lei seca e local, memorização com entendimento.",
+    secoes: [
+      {
+        h: "Onde essas leis entram",
+        p: "O CTM (Lei 7.966/2021) é a moldura — diz que existe imposto sobre serviço e sobre propriedade urbana e define genericamente o fato gerador. Quem preenche o número é aqui: a Lei 5.986/2003 dá a alíquota mínima de 2% do ISS, e a Lei 6.793/2010 dá a tabela progressiva do IPTU (0,3% a 1,4% residencial, 3,5% terreno). Divisão de trabalho: CTM define O QUE incide; estas leis dizem QUANTO.",
+      },
+      {
+        h: "ISS — Lei 5.986/2003 · pontos-chave",
+        p: "Fato gerador: prestação de serviço da lista anexa (LC 116). Contribuinte: o PRESTADOR (art. 8º). Base de cálculo: o PREÇO DO SERVIÇO (art. 10). Local do imposto: regra geral é o do ESTABELECIMENTO PRESTADOR (art. 5º), EXCETO nas hipóteses legais em que é devido no local da prestação (obra, demolição, limpeza, vigilância, etc.). Alíquota MÍNIMA: 2% (art. 13-A). Solidariedade não comporta benefício de ordem (art. 9º, §2º).",
+      },
+      {
+        h: "ISS — detalhes que a banca cobra",
+        p: "Serviços em mais de uma alíquota SEM escrituração separada → aplica-se a MAIS ELEVADA (art. 4º). O tomador pessoa jurídica é responsável solidário se não exigir nota/inscrição do prestador. MEI/ME/EPP têm tratamento diferenciado (Simples). Regra: incide sobre serviço da lista, EXCETO relação de emprego, trabalho avulso e sócios/diretores/conselheiros — que não são serviço tributável (LC 116, art. 2º).",
+      },
+      {
+        h: "IPTU — Lei 6.793/2010 · pontos-chave",
+        p: "Hipótese: propriedade, domínio útil ou posse de imóvel na zona urbana. Contribuinte: proprietário, titular do domínio útil OU possuidor a qualquer título (art. 7º). Base de cálculo: VALOR VENAL (art. 9º). Lançamento: DE OFÍCIO e anual, pelo Cadastro Fiscal Imobiliário (art. 27). Regra: acordo particular NÃO altera quem deve à Fazenda (art. 7º, §1º = art. 123 CTN).",
+      },
+      {
+        h: "IPTU — as alíquotas de Guarulhos (DECORAR)",
+        p: "RESIDENCIAL (progressivo por faixa de valor venal em UFG): 0,3% até 10 mil UFG; 0,5% de 10–20 mil; 0,8% de 20–40 mil; 1,0% de 40–60 mil; 1,4% acima de 60 mil. NÃO RESIDENCIAL: 0,8% até 20 mil, subindo até 2,0% acima de 300 mil. TERRENO (não edificado): 3,5% — a mais alta, contra a especulação. EXCETO os casos de imunidade/isenção legal (templos, imóveis públicos, etc.), em que não há imposto a lançar.",
+      },
+    ],
+    memorizar: [
+      "CTM define O QUE; ISS/IPTU definem QUANTO (a alíquota está na lei específica)",
       "ISS: contribuinte = PRESTADOR; base = PREÇO do serviço; mínima 2%",
-      "ISS local: regra = estabelecimento prestador",
+      "ISS local: regra = estabelecimento prestador, EXCETO obra/limpeza/vigilância = local da prestação",
       "IPTU: base = VALOR VENAL; lançamento de OFÍCIO anual",
       "IPTU Guarulhos: residencial 0,3%→1,4% | terreno 3,5% (a mais alta)",
-      "Acordo particular não muda quem paga (vale p/ IPTU e ISS)",
+      "Acordo particular não muda quem paga (art. 123 CTN)",
     ],
   },
   {
     id: "muni2", titulo: "Legislação Municipal — ITBI e PAT (Guarulhos)", peso: 3, cor: "#5E9E6F",
-    intro: "Continuação do maior bloco. ITBI e o rito do processo administrativo (prazos!) são campeões de cobrança.",
+    intro: "Junta duas peças de naturezas diferentes: o ITBI (Lei 8.425/2025) é mais uma lei específica de imposto (dá o número à moldura do CTM), enquanto o PAT (Lei 5.420/1999) é lei de RITO — não cria tributo, regula como o contribuinte discute o auto de infração. Ambos são campeões de cobrança, sobretudo os prazos do PAT.",
     secoes: [
       {
+        h: "Onde essas normas entram",
+        p: "O ITBI fecha o trio de impostos municipais: o CTM diz que a transmissão onerosa de imóvel incide; a Lei 8.425/2025 fixa a alíquota (3%) e o rito de apuração. Já o PAT (Lei 5.420/1999) está em outro plano — é a lei processual, o 'como se briga' com o Fisco depois do lançamento. Não confunda: ITBI responde 'quanto se paga'; PAT responde 'como se recorre'. (O detalhamento do PAT vem do Decreto 21.066/2000 — ver resumo próprio.)",
+      },
+      {
         h: "ITBI — Lei 8.425/2025 · pontos-chave",
-        p: "Fato gerador: transmissão inter vivos, onerosa, de imóvel/direitos reais (exceto garantia). Ocorre com o REGISTRO do título (art. 1º, §1º) — não na escritura, não no compromisso (STF Tema 1124). Alíquota: 3,0% (art. 10). Base: valor declarado pelo contribuinte, com arbitramento possível pelo Fisco (art. 7º). Competência: Município da SITUAÇÃO do bem.",
+        p: "Fato gerador: transmissão inter vivos, onerosa, de imóvel/direitos reais, EXCETO os de garantia (hipoteca, anticrese). Ocorre com o REGISTRO do título (art. 1º, §1º) — não na escritura, não no compromisso (STF Tema 1124). Alíquota: 3,0% (art. 10). Base: valor declarado pelo contribuinte, com arbitramento possível pelo Fisco (art. 7º). Competência: Município da SITUAÇÃO do bem.",
       },
       {
         h: "ITBI — não incidência (art. 3º)",
-        p: "Não incide: retrovenda/retrocessão; realização de capital (integralização); fusão/incorporação/cisão/extinção de PJ; extinção de condomínio sem aumento patrimonial. MAS: a imunidade da integralização e das reorganizações NÃO vale se a atividade preponderante do adquirente for imobiliária (compra/venda, locação, arrendamento) — art. 4º. Reduções de base: usufruto/uso 1/3; nua-propriedade 2/3; enfiteuse 80%; domínio direto 20%.",
+        p: "Regra geral de não incidência: retrovenda/retrocessão; realização de capital (integralização); fusão/incorporação/cisão/extinção de PJ; extinção de condomínio sem aumento patrimonial. EXCEÇÃO decisiva: a imunidade da integralização e das reorganizações NÃO vale se a atividade preponderante do adquirente for imobiliária (compra/venda, locação, arrendamento) — aí volta a incidir (art. 4º). Reduções de base: usufruto/uso 1/3; nua-propriedade 2/3; enfiteuse 80%; domínio direto 20%.",
       },
       {
         h: "PAT — Lei 5.420/1999 · estrutura e prazos (DECORAR)",
-        p: "Instâncias: 1ª = responsável pela unidade de finanças; 2ª = JUNTA DE RECURSOS FISCAIS (art. 36). IMPUGNAÇÃO: 30 dias da notificação/intimação, instaura a fase contraditória, sem depósito prévio (art. 43 e 42, redação da Lei 6.164/2006). RECURSO voluntário à Junta: 30 dias da ciência (art. 53). Não cabe pedido de reconsideração (art. 38).",
+        p: "Instâncias: 1ª = responsável pela unidade de finanças; 2ª = JUNTA DE RECURSOS FISCAIS (art. 36). IMPUGNAÇÃO: 30 dias da notificação/intimação, instaura o contraditório, sem depósito prévio (art. 43 e 42, redação da Lei 6.164/2006). RECURSO voluntário à Junta: 30 dias da ciência (art. 53). ATENÇÃO: o Decreto 21.066/2000 (art. 34) aparenta indicar 20 dias para o recurso — conflito ainda não resolvido, ver o resumo do Decreto. Não cabe pedido de reconsideração (art. 38).",
       },
       {
         h: "PAT — reduções de multa e detalhes",
-        p: "Pagou em 30 dias SEM impugnar → multa reduzida 50% (art. 37, exceto moratória). Pagou no prazo do recurso após decisão contrária → redução 35% (art. 52). Recurso de ofício (reexame necessário) quando a decisão exonera valor acima do piso legal (art. 51). Consulta: resposta em 20 dias (art. 27); não cabe reconsideração/recurso (art. 32). Edital presume-se intimado 30 dias após publicação (art. 5º).",
+        p: "Pagou em 30 dias SEM impugnar → multa reduzida 50% (art. 37), EXCETO a multa de mora, que não entra no benefício. Pagou no prazo do recurso após decisão contrária → redução de 35% (art. 52). Recurso de ofício (reexame necessário) quando a decisão exonera valor acima do piso legal (art. 51). Consulta: resposta em 20 dias (art. 27); não cabe reconsideração/recurso da resposta (art. 32). Edital: presume-se intimado 30 dias após a publicação (art. 5º).",
       },
     ],
     memorizar: [
+      "ITBI = lei de imposto (quanto); PAT = lei de rito (como recorrer) — naturezas diferentes",
       "ITBI: 3,0% · fato gerador no REGISTRO · município da situação do bem",
-      "ITBI não incide: retrovenda, integralização, fusão/cisão/incorporação (salvo atividade imobiliária)",
-      "PAT: impugnação 30d · recurso 30d · 1ª finanças / 2ª Junta de Recursos Fiscais",
-      "PAT multas: 50% (paga em 30d sem impugnar) / 35% (paga no prazo do recurso)",
-      "Consulta: resposta 20d, sem reconsideração",
+      "ITBI não incide: retrovenda, integralização, fusão/cisão/incorporação — EXCETO atividade imobiliária preponderante (art. 4º)",
+      "PAT: impugnação 30d · recurso 30d (Lei 5.420) — MAS decreto aparenta 20d, ver conflito",
+      "PAT: 1ª = finanças / 2ª = Junta de Recursos Fiscais",
+      "PAT multas: 50% (paga em 30d sem impugnar, exceto mora) / 35% (paga no prazo do recurso)",
+    ],
+  },
+  {
+    id: "pat-decreto", titulo: "Decreto 21.066/2000 — Regulamento do PAT", peso: 3, cor: "#5E9E6F",
+    intro: "Não cria nada de novo: regulamenta o Processo Administrativo Tributário desenhado pela Lei 5.420/1999. É norma de rito — organiza COMO o contribuinte discute o auto de infração, não o imposto em si. É o par regulamentar da Lei 5.420, assim como um decreto federal regulamenta uma lei.",
+    secoes: [
+      {
+        h: "Onde essa norma entra",
+        p: "A Lei 5.420/1999 institui o processo administrativo tributário (impugnação, instâncias, recursos); o Decreto 21.066/2000 a regulamenta, detalhando prazos e formas. Como todo decreto, NÃO pode inovar contra a lei que regulamenta — havendo divergência de prazo entre os dois, a LEI prevalece sobre o decreto (legalidade). Guarde a hierarquia antes de decorar qualquer número daqui.",
+      },
+      {
+        h: "CONFLITO de prazo — recurso: 30 ou 20 dias? [VERIFICAR]",
+        p: "Há divergência aparente entre as fontes: a Lei 5.420/99 (art. 53) indica RECURSO voluntário à Junta em 30 dias — é o que o flashcard atual do app adota; já o Decreto 21.066/2000 (art. 34) aparenta indicar 20 dias. [VERIFICAR: os PDFs 21066decr.pdf e 05420lei.pdf não estavam disponíveis nesta sessão para confronto do texto legal.] Duas hipóteses a checar no PDF: (a) são institutos DIFERENTES — p.ex. os 20 dias serem de outro ato (consulta, reconsideração ou impugnação de rito específico) e não do recurso voluntário; ou (b) houve alteração/revogação posterior de um dos dois. Enquanto não confirmado, PREVALECE a lei (30 dias), pois decreto não reduz prazo fixado em lei.",
+      },
+      {
+        h: "Função regulamentar típica",
+        p: "O decreto detalha a tramitação: forma da impugnação e do recurso, intimações, produção de prova, funcionamento das instâncias (1ª na unidade de finanças; 2ª na Junta de Recursos Fiscais). Nenhum desses pontos altera a estrutura da Lei 5.420 — apenas a operacionaliza. [VERIFICAR: números de artigo do decreto além do art. 34 não confirmados sem o PDF.]",
+      },
+    ],
+    memorizar: [
+      "Decreto 21.066/2000 = REGULAMENTA a Lei 5.420/99 (rito do PAT); não inova contra a lei",
+      "Recurso à Junta: Lei 5.420 art. 53 = 30 dias; Decreto art. 34 aparenta 20 dias — CONFLITO [VERIFICAR no PDF]",
+      "Decreto não reduz prazo de lei: na dúvida, prevalece 30 dias (a lei)",
+      "Hipóteses do conflito: institutos diferentes (impugnação × recurso × consulta) OU alteração posterior",
+    ],
+  },
+  {
+    id: "taxas", titulo: "Taxas Municipais — Lei 5.767/2001", peso: 3, cor: "#5E9E6F",
+    intro: "Trata das taxas de Guarulhos — tributos VINCULADOS a uma atuação estatal específica, diferentes dos impostos do CTM (que independem de contraprestação). É lei específica de um tipo de tributo e se apoia na moldura de taxa do CTN (arts. 77 a 79).",
+    secoes: [
+      {
+        h: "Onde essa lei entra",
+        p: "Enquanto ISS/IPTU/ITBI são IMPOSTOS (você paga sem receber nada em troca direta), a taxa é tributo VINCULADO: só existe se o Município prestar um serviço específico e divisível OU exercer poder de polícia sobre você. A Lei 5.767/2001 institui e organiza as taxas municipais dentro da moldura dos arts. 77-79 do CTN. Se a questão fala em 'contraprestação estatal específica', pense em taxa, não em imposto.",
+      },
+      {
+        h: "As duas espécies de taxa (arts. 77-79 CTN)",
+        p: "TAXA DE PODER DE POLÍCIA: cobrada pela fiscalização/limitação de direitos no interesse público (ex.: licença de funcionamento, fiscalização de obras, licença ambiental). TAXA DE SERVIÇO: cobrada por serviço público específico E divisível, efetivo ou potencial (ex.: coleta domiciliar de lixo). Regra da divisibilidade: serviço UTI SINGULI (mensurável por usuário) pode gerar taxa; serviço UTI UNIVERSI (indivisível — ex.: iluminação e segurança pública) NÃO pode — é a exceção clássica que derruba a 'taxa de iluminação' (por isso virou COSIP, ver resumo próprio).",
+      },
+      {
+        h: "Taxas previstas na Lei 5.767/2001 [VERIFICAR lista no PDF]",
+        p: "A lista nominal das taxas de Guarulhos e o fato gerador de cada uma dependem do texto da Lei 5.767/2001. [VERIFICAR: 05767lei.pdf não estava disponível nesta sessão; não preencher a lista de taxas específicas de memória, para não errar nome/fato gerador.] Ao estudar pelo PDF, monte uma tabela: nome da taxa → é polícia ou serviço? → fato gerador → base de cálculo. Lembre: a base de cálculo da taxa NÃO pode ser idêntica à de imposto (art. 145, §2º, CF / art. 77, par. único, CTN).",
+      },
+    ],
+    memorizar: [
+      "Taxa = tributo VINCULADO (contraprestação); imposto = não vinculado",
+      "Duas espécies: poder de polícia (fiscalização) × serviço específico e divisível",
+      "Serviço divisível (uti singuli) gera taxa; indivisível (uti universi: iluminação/segurança) NÃO",
+      "Base de cálculo de taxa ≠ base de imposto (art. 145, §2º, CF)",
+      "Lista concreta das taxas: [VERIFICAR na Lei 5.767/2001 — PDF]",
+    ],
+  },
+  {
+    id: "cosip", titulo: "COSIP — Contribuição de Iluminação Pública (Lei 7.345/2014)", peso: 3, cor: "#5E9E6F",
+    intro: "Custeia a iluminação pública do Município. O ponto central é a NATUREZA JURÍDICA: não é taxa nem imposto, é uma contribuição sui generis criada pelo art. 149-A da Constituição. A Lei 7.345/2014 é a lei específica municipal que a institui em Guarulhos.",
+    secoes: [
+      {
+        h: "Onde essa lei entra",
+        p: "Iluminação pública é serviço UTI UNIVERSI (indivisível, não dá para medir quanto cada um usa), então NÃO pode ser custeada por taxa — o STF derrubou a antiga 'taxa de iluminação' por falta de especificidade e divisibilidade (Súmula Vinculante 41). Para resolver, a EC 39/2002 criou o art. 149-A da CF, autorizando uma CONTRIBUIÇÃO específica: a COSIP. A Lei 7.345/2014 é a norma municipal que a institui. Ou seja: a COSIP existe justamente porque a taxa NÃO servia.",
+      },
+      {
+        h: "Natureza jurídica — o que mais cai",
+        p: "A COSIP é contribuição SUI GENERIS (espécie tributária própria), fundada no art. 149-A da CF. NÃO é taxa (não há serviço divisível) e NÃO é imposto (tem destinação vinculada ao custeio da iluminação). O STF declarou sua constitucionalidade nessa forma (RE 573.675), justamente por ela NÃO exigir a divisibilidade que a taxa exigiria. Pegadinha: chamar a COSIP de 'taxa' está errado — foi como taxa que a cobrança da iluminação foi declarada INCONSTITUCIONAL antes da EC 39.",
+      },
+      {
+        h: "Base de cálculo e cobrança",
+        p: "A cobrança é feita, em regra, na FATURA DE ENERGIA ELÉTRICA (a concessionária arrecada junto com a conta de luz) — forma validada pelo STF. A base de cálculo costuma referir-se ao consumo de energia do contribuinte, com graduação conforme o consumo (o STF admitiu essa base como critério de rateio). [VERIFICAR: alíquotas, faixas e isenções específicas dependem do texto da Lei 7.345/2014 — 07345lei.pdf não estava disponível nesta sessão.]",
+      },
+    ],
+    memorizar: [
+      "COSIP: contribuição SUI GENERIS (art. 149-A CF), NÃO é taxa nem imposto",
+      "Iluminação pública = serviço indivisível (uti universi) → não cabe taxa (Súmula Vinculante 41)",
+      "STF confirmou a COSIP (RE 573.675); como TAXA seria inconstitucional",
+      "Cobrança na fatura de energia; base ligada ao consumo",
+      "Fundamento: EC 39/2002 → art. 149-A CF",
     ],
   },
   {
