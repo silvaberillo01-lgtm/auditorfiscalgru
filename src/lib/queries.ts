@@ -190,6 +190,52 @@ export async function getPlanoSemanas(userId: string): Promise<SemanaComTemas[]>
   });
 }
 
+export type FocoHoje = {
+  tema: Tema;
+  fase: Fase;
+  semana: number;
+  status: StatusPrazo;
+  diasRestantes: number;
+  adiantado: boolean; // o tema-foco está numa semana que ainda não começou
+  atrasado: boolean; // o tema-foco está numa semana já vencida
+};
+
+/**
+ * O que estudar AGORA: o primeiro tema ainda NÃO coberto (fase diferente de
+ * espacando/dominado) na ordem do plano. Se a semana atual já está toda
+ * coberta, isso naturalmente puxa o próximo tema — deixando o usuário
+ * adiantar sem esperar a data da próxima semana. Prioriza também quem ficou
+ * pra trás (semanas vencidas incompletas vêm antes das futuras).
+ */
+export async function getFocoDeHoje(
+  userId: string,
+  semanas?: SemanaComTemas[]
+): Promise<FocoHoje | null> {
+  const lista = semanas ?? (await getPlanoSemanas(userId));
+  for (const s of lista) {
+    const incompletos = s.temas.filter(
+      (t) => t.fase !== "espacando" && t.fase !== "dominado"
+    );
+    if (incompletos.length === 0) continue;
+    // dentro da semana, pega o tema mais atrasado (fase de menor índice)
+    const alvo = incompletos.reduce((a, b) =>
+      FASE_ORDEM.indexOf(a.fase) <= FASE_ORDEM.indexOf(b.fase) ? a : b
+    );
+    const tema = await getTema(alvo.id);
+    if (!tema) continue;
+    return {
+      tema,
+      fase: alvo.fase,
+      semana: s.semana,
+      status: s.status,
+      diasRestantes: s.diasRestantes,
+      adiantado: s.status === "futura",
+      atrasado: s.status === "atrasada",
+    };
+  }
+  return null; // nada incompleto — tudo coberto
+}
+
 /** Semana do plano que contém um tema específico (primeira ocorrência). */
 export async function getSemanaDoTema(
   userId: string,

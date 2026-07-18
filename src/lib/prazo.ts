@@ -27,6 +27,15 @@ export function statusSemana(
     return { status: coberta ? "concluida" : "futura", diasRestantes: 0 };
   }
 
+  // Cobriu todos os temas da semana? Está concluída, mesmo que antes do prazo
+  // (adiantado) — não faz sentido mostrar "vence em Xd" pra algo já terminado.
+  if (coberta) {
+    const diasRestantes = hoje <= periodoFim
+      ? diasEntre(hoje, periodoFim)
+      : diasEntre(periodoFim, hoje) * -1;
+    return { status: "concluida", diasRestantes };
+  }
+
   if (hoje < periodoInicio) {
     return { status: "futura", diasRestantes: diasEntre(hoje, periodoInicio) };
   }
