@@ -278,7 +278,7 @@ const RESUMOS = [
       },
       {
         h: "PAT — Lei 5.420/1999 · estrutura e prazos (DECORAR)",
-        p: "Instâncias: 1ª = responsável pela unidade de finanças; 2ª = JUNTA DE RECURSOS FISCAIS (art. 36). IMPUGNAÇÃO: 30 dias da notificação/intimação, instaura o contraditório, sem depósito prévio (art. 43 e 42, redação da Lei 6.164/2006). RECURSO voluntário à Junta: 30 dias da ciência (art. 53). ATENÇÃO: o Decreto 21.066/2000 (art. 34) aparenta indicar 20 dias para o recurso — conflito ainda não resolvido, ver o resumo do Decreto. Não cabe pedido de reconsideração (art. 38).",
+        p: "Instâncias: 1ª = responsável pela unidade de finanças; 2ª = JUNTA DE RECURSOS FISCAIS (art. 36). IMPUGNAÇÃO: 30 dias da notificação/intimação, instaura o contraditório, sem depósito prévio (art. 43 e 42, redação da Lei 6.164/2006). RECURSO voluntário à Junta: 30 dias da ciência (art. 53, redação da Lei 6.164/2006). ATENÇÃO ao prazo do recurso: o Decreto 21.066/2000 (art. 34) diz 20 dias porque reproduz a redação ORIGINAL do art. 53 — a Lei 6.164/2006 elevou esse prazo para 30 dias, e o decreto (de 2000) nunca foi atualizado. Vale a lei: 30 dias. Não cabe pedido de reconsideração (art. 38).",
       },
       {
         h: "PAT — reduções de multa e detalhes",
@@ -289,7 +289,7 @@ const RESUMOS = [
       "ITBI = lei de imposto (quanto); PAT = lei de rito (como recorrer) — naturezas diferentes",
       "ITBI: 3,0% · fato gerador no REGISTRO · município da situação do bem",
       "ITBI não incide: retrovenda, integralização, fusão/cisão/incorporação — EXCETO atividade imobiliária preponderante (art. 4º)",
-      "PAT: impugnação 30d · recurso 30d (Lei 5.420) — MAS decreto aparenta 20d, ver conflito",
+      "PAT: impugnação 30d · recurso 30d (art. 53, redação Lei 6.164/2006). Decreto diz 20d = redação antiga, desatualizado",
       "PAT: 1ª = finanças / 2ª = Junta de Recursos Fiscais",
       "PAT multas: 50% (paga em 30d sem impugnar, exceto mora) / 35% (paga no prazo do recurso)",
     ],
@@ -303,44 +303,48 @@ const RESUMOS = [
         p: "A Lei 5.420/1999 institui o processo administrativo tributário (impugnação, instâncias, recursos); o Decreto 21.066/2000 a regulamenta, detalhando prazos e formas. Como todo decreto, NÃO pode inovar contra a lei que regulamenta — havendo divergência de prazo entre os dois, a LEI prevalece sobre o decreto (legalidade). Guarde a hierarquia antes de decorar qualquer número daqui.",
       },
       {
-        h: "CONFLITO de prazo — recurso: 30 ou 20 dias? [VERIFICAR]",
-        p: "Há divergência aparente entre as fontes: a Lei 5.420/99 (art. 53) indica RECURSO voluntário à Junta em 30 dias — é o que o flashcard atual do app adota; já o Decreto 21.066/2000 (art. 34) aparenta indicar 20 dias. [VERIFICAR: os PDFs 21066decr.pdf e 05420lei.pdf não estavam disponíveis nesta sessão para confronto do texto legal.] Duas hipóteses a checar no PDF: (a) são institutos DIFERENTES — p.ex. os 20 dias serem de outro ato (consulta, reconsideração ou impugnação de rito específico) e não do recurso voluntário; ou (b) houve alteração/revogação posterior de um dos dois. Enquanto não confirmado, PREVALECE a lei (30 dias), pois decreto não reduz prazo fixado em lei.",
+        h: "CONFLITO de prazo — recurso: 30 ou 20 dias? (RESOLVIDO)",
+        p: "É o MESMO instituto (recurso voluntário à Junta) — não são atos diferentes. A explicação é temporal: o Decreto 21.066/2000 (art. 34) fixa 20 dias porque reproduz a redação ORIGINAL do art. 53 da Lei 5.420/99, que na época era 20 dias. Depois, a Lei 6.164/2006 deu NOVA REDAÇÃO ao art. 53 e elevou o prazo para 30 dias — mas o decreto, de 2000, nunca foi atualizado. Conclusão: PREVALECE a lei (30 dias). Decreto anterior não sobrevive à lei posterior, e decreto não fixa prazo contra lei. O flashcard de 30 dias está CERTO; os 20 dias do decreto estão superados.",
       },
       {
         h: "Função regulamentar típica",
-        p: "O decreto detalha a tramitação: forma da impugnação e do recurso, intimações, produção de prova, funcionamento das instâncias (1ª na unidade de finanças; 2ª na Junta de Recursos Fiscais). Nenhum desses pontos altera a estrutura da Lei 5.420 — apenas a operacionaliza. [VERIFICAR: números de artigo do decreto além do art. 34 não confirmados sem o PDF.]",
+        p: "O decreto detalha a tramitação: forma da impugnação e do recurso (art. 34 e 35), intimações (art. 5º), produção de prova, e o que põe fim ao processo (art. 10). Confirma as instâncias da lei: 1ª na unidade de finanças, 2ª na Junta de Recursos Fiscais. Nenhum ponto altera a estrutura da Lei 5.420 — apenas a operacionaliza. Onde o decreto e a lei divergem em número (como o prazo de recurso), prevalece a lei.",
       },
     ],
     memorizar: [
       "Decreto 21.066/2000 = REGULAMENTA a Lei 5.420/99 (rito do PAT); não inova contra a lei",
-      "Recurso à Junta: Lei 5.420 art. 53 = 30 dias; Decreto art. 34 aparenta 20 dias — CONFLITO [VERIFICAR no PDF]",
-      "Decreto não reduz prazo de lei: na dúvida, prevalece 30 dias (a lei)",
-      "Hipóteses do conflito: institutos diferentes (impugnação × recurso × consulta) OU alteração posterior",
+      "Recurso à Junta: decreto art. 34 = 20d (redação ANTIGA) × Lei 5.420 art. 53 = 30d (NR Lei 6.164/2006)",
+      "CONCLUSÃO: vale 30 dias — o decreto ficou desatualizado, não é instituto diferente",
+      "Regra de ouro: decreto não fixa prazo contra a lei; lei posterior prevalece sobre decreto anterior",
     ],
   },
   {
     id: "taxas", titulo: "Taxas Municipais — Lei 5.767/2001", peso: 3, cor: "#5E9E6F",
-    intro: "Trata das taxas de Guarulhos — tributos VINCULADOS a uma atuação estatal específica, diferentes dos impostos do CTM (que independem de contraprestação). É lei específica de um tipo de tributo e se apoia na moldura de taxa do CTN (arts. 77 a 79).",
+    intro: "Institui DUAS taxas de Guarulhos — ambas de PODER DE POLÍCIA: a Taxa de Fiscalização de Instalação, Localização e Funcionamento e a Taxa de Fiscalização de Publicidade. Taxa é tributo VINCULADO a uma atuação estatal específica, diferente dos impostos do CTM (que independem de contraprestação). Apoia-se na moldura de taxa do CTN (arts. 77 a 79).",
     secoes: [
       {
         h: "Onde essa lei entra",
-        p: "Enquanto ISS/IPTU/ITBI são IMPOSTOS (você paga sem receber nada em troca direta), a taxa é tributo VINCULADO: só existe se o Município prestar um serviço específico e divisível OU exercer poder de polícia sobre você. A Lei 5.767/2001 institui e organiza as taxas municipais dentro da moldura dos arts. 77-79 do CTN. Se a questão fala em 'contraprestação estatal específica', pense em taxa, não em imposto.",
+        p: "Enquanto ISS/IPTU/ITBI são IMPOSTOS (você paga sem receber nada em troca direta), a taxa é tributo VINCULADO: só existe se o Município exercer poder de polícia OU prestar serviço específico e divisível. A Lei 5.767/2001 é a lei específica que institui duas taxas concretas de Guarulhos, dentro da moldura dos arts. 77-79 do CTN. Atenção: as DUAS taxas desta lei são de PODER DE POLÍCIA (fiscalização) — ela NÃO institui taxa de serviço.",
       },
       {
-        h: "As duas espécies de taxa (arts. 77-79 CTN)",
-        p: "TAXA DE PODER DE POLÍCIA: cobrada pela fiscalização/limitação de direitos no interesse público (ex.: licença de funcionamento, fiscalização de obras, licença ambiental). TAXA DE SERVIÇO: cobrada por serviço público específico E divisível, efetivo ou potencial (ex.: coleta domiciliar de lixo). Regra da divisibilidade: serviço UTI SINGULI (mensurável por usuário) pode gerar taxa; serviço UTI UNIVERSI (indivisível — ex.: iluminação e segurança pública) NÃO pode — é a exceção clássica que derruba a 'taxa de iluminação' (por isso virou COSIP, ver resumo próprio).",
+        h: "Polícia × serviço — a distinção do CTN (arts. 77-79)",
+        p: "TAXA DE PODER DE POLÍCIA: cobrada pelo exercício regular da fiscalização/limitação de direitos no interesse público (ex.: fiscalizar funcionamento de estabelecimento, publicidade, obras). TAXA DE SERVIÇO: cobrada por serviço público específico E divisível, efetivo ou potencial. Regra da divisibilidade: serviço UTI SINGULI (mensurável por usuário) pode gerar taxa; serviço UTI UNIVERSI (indivisível — ex.: iluminação e segurança pública) NÃO pode — é a exceção clássica que derruba a 'taxa de iluminação' (por isso virou COSIP, ver resumo próprio). Guarde: as taxas da Lei 5.767 são todas do PRIMEIRO tipo (polícia).",
       },
       {
-        h: "Taxas previstas na Lei 5.767/2001 [VERIFICAR lista no PDF]",
-        p: "A lista nominal das taxas de Guarulhos e o fato gerador de cada uma dependem do texto da Lei 5.767/2001. [VERIFICAR: 05767lei.pdf não estava disponível nesta sessão; não preencher a lista de taxas específicas de memória, para não errar nome/fato gerador.] Ao estudar pelo PDF, monte uma tabela: nome da taxa → é polícia ou serviço? → fato gerador → base de cálculo. Lembre: a base de cálculo da taxa NÃO pode ser idêntica à de imposto (art. 145, §2º, CF / art. 77, par. único, CTN).",
+        h: "Taxa 1 — Fiscalização de Instalação, Localização e Funcionamento (art. 1º)",
+        p: "Fato gerador: o exercício regular do PODER DE POLÍCIA de fiscalização do cumprimento das normas de instalação, localização e funcionamento das atividades (comércio, indústria, serviços, etc.) — art. 1º. Considera-se ocorrido no início da atividade e, nos anos seguintes, em 1º de janeiro de cada exercício para atividade permanente (art. 9º). Sujeito passivo: a pessoa física ou jurídica sujeita à fiscalização (art. 5º). Regra: a incidência INDEPENDE de licença/autorização de outro ente (art. 4º) — EXCETO as isenções do art. 17 (ex.: entidades sem fins lucrativos que cumpram os requisitos).",
+      },
+      {
+        h: "Taxa 2 — Fiscalização de Publicidade (art. 21)",
+        p: "Fato gerador: o efetivo e permanente exercício do PODER DE POLÍCIA para fiscalizar a publicidade veiculada nas vias e logradouros (uso do solo, segurança, higiene, ordem, bons costumes) — art. 21. Sujeito passivo: pessoa física ou jurídica que explora/veicula a publicidade. É LANÇADA pelo próprio contribuinte (autolançamento). Incidência independe de licença de outro ente (art. 22). Regra geral: toda publicidade em via pública é fiscalizada, EXCETO as hipóteses de isenção do art. 23.",
       },
     ],
     memorizar: [
       "Taxa = tributo VINCULADO (contraprestação); imposto = não vinculado",
-      "Duas espécies: poder de polícia (fiscalização) × serviço específico e divisível",
-      "Serviço divisível (uti singuli) gera taxa; indivisível (uti universi: iluminação/segurança) NÃO",
-      "Base de cálculo de taxa ≠ base de imposto (art. 145, §2º, CF)",
-      "Lista concreta das taxas: [VERIFICAR na Lei 5.767/2001 — PDF]",
+      "Lei 5.767/2001 institui 2 taxas, AMBAS de poder de polícia (não há taxa de serviço aqui)",
+      "Taxa 1: Fiscalização de Instalação/Localização/Funcionamento — FG = poder de polícia sobre a atividade (art. 1º/9º)",
+      "Taxa 2: Fiscalização de Publicidade — FG = poder de polícia sobre a publicidade (art. 21)",
+      "Polícia = fiscalização; serviço = específico+divisível (uti singuli). Iluminação (uti universi) não vira taxa",
     ],
   },
   {
@@ -356,16 +360,20 @@ const RESUMOS = [
         p: "A COSIP é contribuição SUI GENERIS (espécie tributária própria), fundada no art. 149-A da CF. NÃO é taxa (não há serviço divisível) e NÃO é imposto (tem destinação vinculada ao custeio da iluminação). O STF declarou sua constitucionalidade nessa forma (RE 573.675), justamente por ela NÃO exigir a divisibilidade que a taxa exigiria. Pegadinha: chamar a COSIP de 'taxa' está errado — foi como taxa que a cobrança da iluminação foi declarada INCONSTITUCIONAL antes da EC 39.",
       },
       {
-        h: "Base de cálculo e cobrança",
-        p: "A cobrança é feita, em regra, na FATURA DE ENERGIA ELÉTRICA (a concessionária arrecada junto com a conta de luz) — forma validada pelo STF. A base de cálculo costuma referir-se ao consumo de energia do contribuinte, com graduação conforme o consumo (o STF admitiu essa base como critério de rateio). [VERIFICAR: alíquotas, faixas e isenções específicas dependem do texto da Lei 7.345/2014 — 07345lei.pdf não estava disponível nesta sessão.]",
+        h: "Contribuinte, cobrança e base (Lei 7.345/2014)",
+        p: "Contribuinte: toda pessoa física ou jurídica com ligação de energia elétrica cadastrada na concessionária (art. 4º). Cobrança: incluída na FATURA MENSAL da concessionária de energia (art. 5º), que é a responsável pela arrecadação e repasse ao Município (art. 9º). Base/valor: para o consumidor RESIDENCIAL, valor fixo conforme a FAIXA DE CONSUMO em kWh; para comercial/rural/industrial, alíquota sobre o consumo de energia (art. 5º, §2º, tabelas dos Anexos). Reajuste anual pelo índice da tarifa de energia da ANEEL (art. 6º).",
+      },
+      {
+        h: "Isenções (art. 7º) — a exceção que cai",
+        p: "Regra: quem tem ligação de energia paga a COSIP. EXCETO os isentos do art. 7º: (a) poder público (administração direta e indireta do Município, do Estado e da União); (b) na classe residencial, quem consome até 50 kWh/mês, os inscritos no Bolsa Família e os beneficiários da tarifa social de energia. É a hipótese típica de pegadinha: 'todo consumidor paga' está ERRADO por causa dessas isenções.",
       },
     ],
     memorizar: [
       "COSIP: contribuição SUI GENERIS (art. 149-A CF), NÃO é taxa nem imposto",
       "Iluminação pública = serviço indivisível (uti universi) → não cabe taxa (Súmula Vinculante 41)",
       "STF confirmou a COSIP (RE 573.675); como TAXA seria inconstitucional",
-      "Cobrança na fatura de energia; base ligada ao consumo",
-      "Fundamento: EC 39/2002 → art. 149-A CF",
+      "Cobrança na fatura de energia (art. 5º); concessionária arrecada (art. 9º); base = faixa de consumo kWh",
+      "Isento (art. 7º): poder público; residencial ≤ 50 kWh/mês, Bolsa Família e tarifa social",
     ],
   },
   {
