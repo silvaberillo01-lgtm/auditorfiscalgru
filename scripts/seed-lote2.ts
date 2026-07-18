@@ -319,7 +319,7 @@ const FLASHCARDS: Flashcard[] = [
   { tema_id: "tributos-municipais", pergunta: "CTM: limites total e individual da Contribuição de Melhoria (art. 203-204)?", resposta_html: "Limite <b>total</b> = custo da obra; limite <b>individual</b> = valorização do imóvel." },
   { tema_id: "tributos-municipais", pergunta: "CTM: prazo mínimo de impugnação da Contribuição de Melhoria?", resposta_html: "<b>30 dias</b>, após publicação prévia de 5 elementos (memorial, orçamento, parcela financiada, zona beneficiada, fator de absorção da valorização)." },
   // Decreto PAT
-  { tema_id: "processo-administrativo-tributario", pergunta: "PAT: prazo do recurso voluntário à Junta de Recursos Fiscais?", resposta_html: "<b>30 dias</b> da ciência (Lei 5.420/99, art. 53, redação da Lei 6.164/2006). O art. 34 do Decreto 21.066/2000 ainda diz 20 dias, mas é a redação antiga — está desatualizado." },
+  { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: prazo do recurso voluntário (art. 34)?", resposta_html: "<b>30 dias</b> da ciência (Lei 5.420/99, art. 53, redação da Lei 6.164/2006). O art. 34 do decreto ainda diz 20 dias, mas reproduz a redação antiga da lei — está desatualizado; prevalece a lei." },
   { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: quando pode usar edital pra dar ciência de um ato (art. 5º §3º)?", resposta_html: "Só depois de <b>esgotados</b> os meios de ciência pessoal e carta com AR." },
   { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: cabe pedido de reconsideração da decisão de 1ª instância?", resposta_html: "<b>Não</b> (art. 30)." },
   { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: diferença entre nulidade absoluta e ato anulável (arts. 52 e 54)?", resposta_html: "<b>Absoluta</b>: autoridade incompetente, prejuízo à defesa, falta de fundamentação. <b>Anulável</b>: erro de cálculo ou de capitulação legal — corrige de ofício e reabre prazo de <b>5 dias</b> para impugnação." },
@@ -636,6 +636,8 @@ async function main() {
   await supabase.from("resumos").delete().in("titulo", titulosLote2);
   const fontesLote2 = [...new Set(QUESTOES.map((q) => q.fonte))];
   await supabase.from("questoes").delete().in("fonte", fontesLote2);
+  const perguntasLote2 = FLASHCARDS.map((f) => f.pergunta);
+  await supabase.from("flashcards").delete().in("pergunta", perguntasLote2);
 
   const { error: errResumos } = await supabase.from("resumos").insert(RESUMOS);
   if (errResumos) console.error("Erro ao inserir resumos:", errResumos.message);
