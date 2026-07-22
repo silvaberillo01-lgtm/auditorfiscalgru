@@ -60,6 +60,7 @@ export type FlashcardReview = {
   ultima_revisao: string | null;
   streak_acertos: number;
   ciclos_completos: number;
+  erros: number;
 };
 
 export type Resposta = {

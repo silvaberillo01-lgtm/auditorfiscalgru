@@ -398,3 +398,41 @@ export async function getErrosPendentesCount(userId: string, temaId: string): Pr
 
   return count ?? 0;
 }
+
+export type FlashcardErrado = {
+  flashcard_id: string;
+  tema_nome: string;
+  pergunta: string;
+  resposta_html: string;
+  erros: number;
+};
+
+/** Flashcards que o usuário já errou (mais errados primeiro), pra revisar com uma IA. */
+export async function getFlashcardsMaisErrados(userId: string): Promise<FlashcardErrado[]> {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("flashcard_reviews")
+    .select("flashcard_id, erros, flashcards(pergunta, resposta_html, temas(nome))")
+    .eq("user_id", userId)
+    .gt("erros", 0)
+    .order("erros", { ascending: false });
+
+  return (data ?? [])
+    .map((r) => {
+      const fc = r.flashcards as unknown as {
+        pergunta: string | null;
+        resposta_html: string | null;
+        temas: { nome: string } | null;
+      } | null;
+      if (!fc) return null;
+      return {
+        flashcard_id: r.flashcard_id as string,
+        tema_nome: fc.temas?.nome ?? "",
+        pergunta: fc.pergunta ?? "",
+        resposta_html: fc.resposta_html ?? "",
+        erros: (r.erros as number) ?? 0,
+      };
+    })
+    .filter((c): c is FlashcardErrado => c !== null);
+}

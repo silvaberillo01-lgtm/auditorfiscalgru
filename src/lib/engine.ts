@@ -273,6 +273,18 @@ export async function revisarFlashcard(params: {
     .eq("user_id", userId)
     .eq("flashcard_id", flashcardId);
 
+  // Contador acumulado de erros por card — alimenta o painel "cards que você
+  // mais erra" na tela de revisar. Update separado (best-effort): se a coluna
+  // ainda não existir na base, o supabase só devolve erro nessa chamada e o
+  // resto da revisão segue normal.
+  if (!acertou) {
+    await supabase
+      .from("flashcard_reviews")
+      .update({ erros: (review.erros ?? 0) + 1 })
+      .eq("user_id", userId)
+      .eq("flashcard_id", flashcardId);
+  }
+
   await registrarAtividade(supabase, userId);
 
   // espacando -> dominado: todos os cards do tema com 2+ ciclos completos (D+15 e D+30 sem erro)
