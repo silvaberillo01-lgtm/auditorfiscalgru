@@ -23,8 +23,19 @@ export function statusSemana(
   coberta: boolean,
   hoje: string = hojeISO()
 ): { status: StatusPrazo; diasRestantes: number } {
+  // Terminou todos os temas da semana? Então está concluída, independente do
+  // calendário — quem adianta o trabalho não deve ver "vence em Nd". Aqui
+  // diasRestantes fica positivo se ainda dentro do prazo (concluiu adiantado)
+  // e negativo/zero se o prazo já passou.
+  if (coberta) {
+    return {
+      status: "concluida",
+      diasRestantes: periodoFim ? diasEntre(hoje, periodoFim) : 0,
+    };
+  }
+
   if (!periodoInicio || !periodoFim) {
-    return { status: coberta ? "concluida" : "futura", diasRestantes: 0 };
+    return { status: "futura", diasRestantes: 0 };
   }
 
   if (hoje < periodoInicio) {
@@ -32,10 +43,7 @@ export function statusSemana(
   }
 
   if (hoje > periodoFim) {
-    return {
-      status: coberta ? "concluida" : "atrasada",
-      diasRestantes: diasEntre(periodoFim, hoje) * -1,
-    };
+    return { status: "atrasada", diasRestantes: diasEntre(periodoFim, hoje) * -1 };
   }
 
   return { status: "atual", diasRestantes: diasEntre(hoje, periodoFim) };
