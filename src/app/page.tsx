@@ -103,16 +103,20 @@ export default async function HojePage() {
         </div>
       )}
 
-      {/* Progresso da prova */}
-      <div className="flex items-center gap-4 rounded-2xl border border-neutral-800 bg-neutral-900 p-5 shadow-sm">
+      {/* Progresso da prova — clica pra ver as estatísticas completas */}
+      <Link
+        href="/estatisticas"
+        className="flex items-center gap-4 rounded-2xl border border-neutral-800 bg-neutral-900 p-5 shadow-sm hover:border-neutral-700"
+      >
         <ProgressRing pct={progressoProva.pct} />
-        <div>
+        <div className="flex-1">
           <p className="text-sm text-neutral-500">Progresso da prova</p>
           <p className="text-sm text-neutral-300">
             {progressoProva.temasDominados} de {progressoProva.totalTemas} temas cobertos
           </p>
+          <p className="mt-1 text-xs text-[#7db0ea]">Ver estatísticas →</p>
         </div>
-      </div>
+      </Link>
 
       <Link href="/plano" className="block text-center text-sm text-[#7db0ea] hover:underline">
         Ver plano completo →

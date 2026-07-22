@@ -237,10 +237,19 @@ export async function getProgressoProva(userId: string) {
   ]);
 
   const faseMap = new Map((progressos ?? []).map((p) => [p.tema_id, p.fase as Fase]));
+  // Régua de peso de cada tema na prova. n_questoes_prova ainda é placeholder
+  // (0) no seed — sem fallback, o progresso ficava travado em 0% pra sempre.
+  // A régua é escolhida uma vez pro conjunto inteiro (nunca mistura escalas):
+  // peso*questões se houver questões cadastradas; senão só o peso; senão 1.
+  const lista = temas ?? [];
+  const temQuestoes = lista.some((t) => (t.n_questoes_prova ?? 0) > 0);
+  const temPeso = lista.some((t) => (t.peso ?? 0) > 0);
+  const pesoDoTema = (t: { peso: number | null; n_questoes_prova: number | null }) =>
+    temQuestoes ? (t.peso ?? 0) * (t.n_questoes_prova ?? 0) : temPeso ? (t.peso ?? 0) : 1;
   let total = 0;
   let coberto = 0;
-  for (const t of temas ?? []) {
-    const peso = (t.peso ?? 0) * (t.n_questoes_prova ?? 0);
+  for (const t of lista) {
+    const peso = pesoDoTema(t);
     total += peso;
     const fase = faseMap.get(t.id);
     if (fase === "dominado" || fase === "espacando") coberto += peso;
@@ -425,6 +434,49 @@ export async function getErrosPendentesCount(userId: string, temaId: string): Pr
     .is("raciocinio", null);
 
   return count ?? 0;
+}
+
+/** Atividade dos últimos `dias` dias (incluindo hoje), com zeros preenchidos — pro gráfico de barras. */
+export async function getAtividadeRecente(userId: string, dias = 14) {
+  const supabase = await createClient();
+  const inicio = new Date();
+  inicio.setDate(inicio.getDate() - (dias - 1));
+  const inicioISO = inicio.toISOString().slice(0, 10);
+
+  const { data } = await supabase
+    .from("atividade_diaria")
+    .select("data, acoes")
+    .eq("user_id", userId)
+    .gte("data", inicioISO)
+    .order("data", { ascending: true });
+
+  const porData = new Map((data ?? []).map((d) => [d.data as string, (d.acoes as number) ?? 0]));
+  const resultado: { data: string; acoes: number }[] = [];
+  const cursor = new Date(inicio);
+  for (let i = 0; i < dias; i++) {
+    const iso = cursor.toISOString().slice(0, 10);
+    resultado.push({ data: iso, acoes: porData.get(iso) ?? 0 });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return resultado;
+}
+
+/** Números da fila de repetição espaçada: quantos cards já entraram, quantos vencem hoje, quantos você já errou. */
+export async function getEstatisticasFlashcards(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("flashcard_reviews")
+    .select("proxima_revisao, erros, ciclos_completos")
+    .eq("user_id", userId);
+
+  const hoje = hojeISO();
+  const lista = data ?? [];
+  return {
+    totalNaFila: lista.length,
+    vencendoHoje: lista.filter((r) => (r.proxima_revisao as string) <= hoje).length,
+    comErro: lista.filter((r) => ((r.erros as number) ?? 0) > 0).length,
+    dominados: lista.filter((r) => ((r.ciclos_completos as number) ?? 0) >= 2).length,
+  };
 }
 
 export type FlashcardErrado = {

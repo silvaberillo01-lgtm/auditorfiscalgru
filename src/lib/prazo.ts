@@ -1,5 +1,8 @@
 export type StatusPrazo = "futura" | "atual" | "atrasada" | "concluida";
 
+/** Data da prova do concurso (Auditor Fiscal VI — Guarulhos/IBAM). */
+export const DATA_PROVA = "2026-09-13";
+
 export function hojeISO(): string {
   return new Date().toISOString().slice(0, 10);
 }

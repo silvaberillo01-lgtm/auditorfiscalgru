@@ -54,6 +54,9 @@ export default async function RootLayout({
               <Link href="/revisar" className="shrink-0 text-neutral-400 hover:text-neutral-100">
                 Revisar
               </Link>
+              <Link href="/estatisticas" className="shrink-0 text-neutral-400 hover:text-neutral-100">
+                Estatísticas
+              </Link>
               <Link href="/anotacoes" className="shrink-0 text-neutral-400 hover:text-neutral-100">
                 Anotações
               </Link>
