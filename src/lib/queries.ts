@@ -190,6 +190,34 @@ export async function getPlanoSemanas(userId: string): Promise<SemanaComTemas[]>
   });
 }
 
+/** Fases que ainda exigem trabalho ativo (não é só esperar a revisão espaçada). */
+const FASES_ATIVAS: Fase[] = ["nao_iniciado", "entendendo", "testando", "corrigindo"];
+
+export type ProximoTemaEstudo = {
+  tema: { id: string; nome: string };
+  fase: Fase;
+  semana: SemanaComTemas;
+};
+
+/**
+ * Próximo tema que precisa de estudo ativo (entender/testar/corrigir), na
+ * ordem do plano. Puxa o primeiro tema pendente mesmo que seja de uma semana
+ * futura — assim quem adiantou a semana atual não fica sem o que fazer.
+ */
+export async function getProximoTemaParaEstudar(
+  userId: string,
+  semanas?: SemanaComTemas[]
+): Promise<ProximoTemaEstudo | null> {
+  const lista = semanas ?? (await getPlanoSemanas(userId));
+  for (const semana of lista) {
+    const tema = semana.temas.find((t) => FASES_ATIVAS.includes(t.fase));
+    if (tema) {
+      return { tema: { id: tema.id, nome: tema.nome }, fase: tema.fase, semana };
+    }
+  }
+  return null;
+}
+
 /** Semana do plano que contém um tema específico (primeira ocorrência). */
 export async function getSemanaDoTema(
   userId: string,
