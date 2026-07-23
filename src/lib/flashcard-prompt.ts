@@ -32,14 +32,12 @@ export function promptFlashcards(cards: FlashcardParaIA[]): string {
         ? `sobre os temas: ${temas.join(", ")}`
         : "";
 
-  const instrucoes = `Sou leigo ${contextoTema} — estou estudando pra um concurso com flashcards e estes abaixo são justamente os que eu não consigo fixar (erro toda vez). Pra cada flashcard:
+  const instrucoes = `Sou leigo ${contextoTema} — estou estudando pra um concurso com flashcards e estes abaixo são justamente os que eu não consigo fixar (erro toda vez). Mostre TODOS de uma vez, um atrás do outro — não pare pra esperar eu responder entre um e outro. Pra cada flashcard:
 
 1. Explique a resposta como se eu nunca tivesse visto esses termos, sem definição de dicionário.
 2. Me dê uma ANALOGIA ou exemplo do dia a dia (fora do direito/contabilidade) que faça a lógica "grudar" na memória.
 3. Aponte por que isso costuma confundir e qual é o macete pra não errar de novo.
-4. Termine com uma pergunta rápida pra eu testar se entendi, sem me dar a resposta na hora.
-
-Vá um de cada vez e espere eu responder antes de seguir pro próximo, se der.`;
+4. Termine com "📌 Resposta-chave:" seguido da resposta EXATA como uma banca de concurso cobraria — os termos técnicos e palavras-chave precisos que eu preciso decorar, não uma paráfrase com outras palavras. Essa parte não pode reformular o termo técnico.`;
 
   const blocos = cards.map((c, i) => {
     const partes = [`### Flashcard ${i + 1}${c.tema_nome ? ` (${c.tema_nome})` : ""}`];

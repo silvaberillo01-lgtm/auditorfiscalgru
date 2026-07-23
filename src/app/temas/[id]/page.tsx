@@ -16,6 +16,7 @@ import { FASE_BADGE } from "@/lib/fase-ui";
 import type { Resumo } from "@/lib/types";
 import NotesPanel from "@/components/notes-panel";
 import ErrosResumoPanel from "@/components/erros-resumo-panel";
+import CopiarResumoButton from "@/components/copiar-resumo-button";
 import DeadlineBadge from "@/components/deadline-badge";
 import PhaseStepper from "@/components/phase-stepper";
 import { verificarConclusaoTeste } from "@/lib/engine";
@@ -99,7 +100,10 @@ export default async function TemaPage({
 
       {(resumos as Resumo[] | null)?.map((r) => (
         <article key={r.id} className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4">
-          {r.titulo && <h2 className="font-medium mb-2 text-neutral-100">{r.titulo}</h2>}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            {r.titulo && <h2 className="font-medium text-neutral-100">{r.titulo}</h2>}
+            <CopiarResumoButton temaNome={tema.nome} resumo={r} />
+          </div>
           <div className="prose prose-sm prose-invert max-w-none">
             <ReactMarkdown>{r.conteudo_md ?? ""}</ReactMarkdown>
           </div>
