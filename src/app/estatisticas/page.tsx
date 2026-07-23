@@ -124,7 +124,7 @@ export default async function EstatisticasPage() {
                   style={{ height: altura }}
                 />
                 <span className="text-[10px] text-neutral-600">
-                  {DIAS_SEMANA[new Date(`${a.data}T00:00:00`).getDay()]}
+                  {DIAS_SEMANA[new Date(`${a.data}T00:00:00Z`).getUTCDay()]}
                 </span>
               </div>
             );

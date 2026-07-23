@@ -3,8 +3,28 @@ export type StatusPrazo = "futura" | "atual" | "atrasada" | "concluida";
 /** Data da prova do concurso (Auditor Fiscal VI — Guarulhos/IBAM). */
 export const DATA_PROVA = "2026-09-13";
 
+// App pessoal, uso único no fuso de São Paulo — fixo o fuso aqui em vez de
+// usar UTC (new Date().toISOString()), que troca de dia às 21h de Brasília
+// e fazia revisões/streak/prazos pularem um dia quando usados à noite.
+const FUSO = "America/Sao_Paulo";
+
+/** Data de hoje (YYYY-MM-DD) no fuso de São Paulo, não em UTC. */
 export function hojeISO(): string {
-  return new Date().toISOString().slice(0, 10);
+  const partes = new Intl.DateTimeFormat("en-CA", {
+    timeZone: FUSO,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const mapa = Object.fromEntries(partes.map((p) => [p.type, p.value]));
+  return `${mapa.year}-${mapa.month}-${mapa.day}`;
+}
+
+/** Soma (ou subtrai, se negativo) dias a uma data ISO, sem depender de fuso horário. */
+export function somarDias(dataISO: string, dias: number): string {
+  const data = new Date(`${dataISO}T00:00:00Z`);
+  data.setUTCDate(data.getUTCDate() + dias);
+  return data.toISOString().slice(0, 10);
 }
 
 /** Diferença em dias entre duas datas ISO (b - a). Positivo se b é depois de a. */

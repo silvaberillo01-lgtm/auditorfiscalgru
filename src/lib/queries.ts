@@ -2,7 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Anotacao, Fase, PlanoSemana, Tema, TemaProgresso } from "@/lib/types";
 import { FASE_ORDEM } from "@/lib/fase-ui";
-import { statusSemana, type StatusPrazo } from "@/lib/prazo";
+import { statusSemana, hojeISO, somarDias, type StatusPrazo } from "@/lib/prazo";
 
 /** Dentre uma lista de temas, qual está na fase mais atrasada (mais perto de nao_iniciado). */
 function temaMaisAtrasado(temaIds: string[], progressoMap: Map<string, Fase>): string {
@@ -72,10 +72,6 @@ export function fasesLabel(fase: Fase): string {
       dominado: "Dominado",
     } satisfies Record<Fase, string>
   )[fase];
-}
-
-function hojeISO() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 /** Revisões atrasadas (flashcards com proxima_revisao <= hoje), agrupadas por tema. */
@@ -279,14 +275,13 @@ export async function getStreak(userId: string): Promise<number> {
   if (!data || data.length === 0) return 0;
 
   const datas = new Set(data.map((d) => d.data));
-  const cursor = new Date();
   // se hoje ainda não tem atividade, começa a contar a partir de ontem
-  if (!datas.has(hojeISO())) cursor.setDate(cursor.getDate() - 1);
+  let cursorISO = datas.has(hojeISO()) ? hojeISO() : somarDias(hojeISO(), -1);
 
   let streak = 0;
-  while (datas.has(cursor.toISOString().slice(0, 10))) {
+  while (datas.has(cursorISO)) {
     streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
+    cursorISO = somarDias(cursorISO, -1);
   }
   return streak;
 }
@@ -439,9 +434,7 @@ export async function getErrosPendentesCount(userId: string, temaId: string): Pr
 /** Atividade dos últimos `dias` dias (incluindo hoje), com zeros preenchidos — pro gráfico de barras. */
 export async function getAtividadeRecente(userId: string, dias = 14) {
   const supabase = await createClient();
-  const inicio = new Date();
-  inicio.setDate(inicio.getDate() - (dias - 1));
-  const inicioISO = inicio.toISOString().slice(0, 10);
+  const inicioISO = somarDias(hojeISO(), -(dias - 1));
 
   const { data } = await supabase
     .from("atividade_diaria")
@@ -452,11 +445,10 @@ export async function getAtividadeRecente(userId: string, dias = 14) {
 
   const porData = new Map((data ?? []).map((d) => [d.data as string, (d.acoes as number) ?? 0]));
   const resultado: { data: string; acoes: number }[] = [];
-  const cursor = new Date(inicio);
+  let cursorISO = inicioISO;
   for (let i = 0; i < dias; i++) {
-    const iso = cursor.toISOString().slice(0, 10);
-    resultado.push({ data: iso, acoes: porData.get(iso) ?? 0 });
-    cursor.setDate(cursor.getDate() + 1);
+    resultado.push({ data: cursorISO, acoes: porData.get(cursorISO) ?? 0 });
+    cursorISO = somarDias(cursorISO, 1);
   }
   return resultado;
 }
