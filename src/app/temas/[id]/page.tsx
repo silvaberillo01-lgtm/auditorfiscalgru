@@ -19,7 +19,7 @@ import ErrosResumoPanel from "@/components/erros-resumo-panel";
 import CopiarResumoButton from "@/components/copiar-resumo-button";
 import DeadlineBadge from "@/components/deadline-badge";
 import PhaseStepper from "@/components/phase-stepper";
-import { verificarConclusaoTeste } from "@/lib/engine";
+import { verificarConclusaoTeste, verificarConclusaoCorrecao } from "@/lib/engine";
 import OpenTracker from "./open-tracker";
 import ResumoActions from "./resumo-actions";
 import EsquecerButton from "./esquecer-button";
@@ -36,6 +36,8 @@ export default async function TemaPage({
   // reavalia se as reais já foram todas respondidas (cobre quem ficou
   // preso em "testando" antes das variações virarem opcionais)
   await verificarConclusaoTeste(user.id, id);
+  // e destrava quem ficou em "corrigindo" sem nenhum erro a corrigir
+  await verificarConclusaoCorrecao(user.id, id);
 
   const [tema, progresso, { data: resumos }, anotacoes, erros, semana, errosPendentes] = await Promise.all([
     getTema(id),

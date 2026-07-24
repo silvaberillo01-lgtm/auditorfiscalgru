@@ -100,13 +100,15 @@ pegar quem só decorou o CTN federal.
   {
     tema_id: "legislacao-tributaria-municipal",
     titulo: "Lei 7.966/2021 — CTM: Livro II, Título I (Impostos)",
-    conteudo_md: `É o mesmo ISS/IPTU/ITBI que você já estudou, agora na "versão CTM"
-(hipótese de incidência, base de cálculo, contribuinte definidos de forma
-genérica — as alíquotas continuam nas leis específicas).
+    conteudo_md: `**Onde entra**: o CTM é a MOLDURA — define hipótese de incidência, base
+de cálculo e contribuinte de ISS/IPTU/ITBI de forma genérica, mas NÃO fixa
+alíquota. Os números (2-5% ISS, 0,3-3,5% IPTU, 3% ITBI) ficam nas leis
+específicas de cada tributo. É a mesma relação do CTN com a Constituição.
 
-- **IPTU** — pegadinha clássica: não incide sobre imóvel em zona urbana
-  usado comprovadamente em exploração extrativa vegetal, agrícola,
-  pecuária ou agroindustrial (art. 143), mesmo estando na zona urbana.
+- **IPTU** — regra: imóvel em zona urbana paga; EXCETO (pegadinha
+  clássica) o imóvel usado comprovadamente em exploração extrativa
+  vegetal, agrícola, pecuária ou agroindustrial (art. 143), que não incide
+  mesmo estando na zona urbana.
 - **ITBI** (art. 146): 12 incisos do que está compreendido na incidência —
   vale decorar que **cessão de direitos à sucessão** e **cessão de
   benfeitorias em terreno de terceiro** também entram, não é só compra e
@@ -115,6 +117,7 @@ genérica — as alíquotas continuam nas leis específicas).
   + águas pluviais, água, esgoto, iluminação, escola/posto de saúde a até
   3km) — igual ao CTN art. 32 §1º, agora como norma local.`,
     pontos_decorar: [
+      "CTM = moldura: define O QUE incide (ISS/IPTU/ITBI); a alíquota está nas leis específicas",
       "IPTU não incide em zona urbana com exploração extrativa vegetal/agrícola/pecuária/agroindustrial (art. 143)",
       "ITBI também incide sobre cessão de direitos à sucessão e cessão de benfeitorias em terreno de terceiro (art. 146)",
       "Zona urbana pra fins de IPTU: mínimo 2 de 5 melhoramentos do art. 32 §1º do CTN",
@@ -148,17 +151,22 @@ genérica — as alíquotas continuam nas leis específicas).
   {
     tema_id: "processo-administrativo-tributario",
     titulo: "Decreto 21.066/2000 — Regulamento do PAT",
-    conteudo_md: `Regulamenta a Lei 5.420/99. Complementa o que você já tinha; aqui só os
-pontos que ainda não estavam cobertos.
+    conteudo_md: `**Onde entra**: é norma de RITO — regulamenta a Lei 5.420/99 (não cria
+tributo, organiza como o contribuinte discute o auto de infração). Como
+todo decreto, não pode contrariar a lei que regulamenta.
 
-> ⚠️ **Correção**: o recurso voluntário tem prazo de **20 dias** (art. 34),
-> não 30 — se você tiver flashcard/questão antiga dizendo 30 dias, está
-> desatualizado.
+> ⚠️ **Prazo do recurso voluntário = 30 dias**, não 20. O decreto diz 20
+> dias no art. 34, mas reproduz a redação **original** do art. 53 da Lei
+> 5.420/99. A **Lei 6.164/2006 alterou o art. 53 para 30 dias**, e o
+> decreto (de 2000, anterior) nunca foi atualizado. Decreto não fixa prazo
+> contra lei posterior — prevalece a lei: **30 dias**.
 
 - **Ciência dos atos**: pessoal, carta com AR, ou **edital** — o edital só
   pode ser usado depois de esgotados os dois primeiros meios (art. 5º §3º).
-- **Recurso voluntário**: **20 dias** da ciência da decisão de 1ª
-  instância, com efeito devolutivo e suspensivo (art. 34).
+- **Recurso voluntário**: **30 dias** da ciência da decisão de 1ª
+  instância, com efeito devolutivo e suspensivo (Lei 5.420/99, art. 53,
+  redação da Lei 6.164/2006). O art. 34 do decreto ainda diz 20 dias, mas
+  está desatualizado.
 - **Recurso de ofício (reexame necessário)**: quando a decisão de 1ª
   instância exonera o contribuinte acima do valor fixado em lei (art. 29
   do decreto, remetendo ao art. 51 da Lei 5.420/99).
@@ -177,7 +185,7 @@ pontos que ainda não estavam cobertos.
   cientificar o superior hierárquico **imediatamente**, por protocolo
   (art. 55).`,
     pontos_decorar: [
-      "Recurso voluntário: 20 dias da ciência (art. 34) — NÃO 30 dias",
+      "Recurso voluntário: 30 dias da ciência (Lei 5.420/99 art. 53, redação Lei 6.164/2006). O decreto diz 20 (art. 34), mas está desatualizado",
       "Edital só depois de esgotados ciência pessoal e carta com AR (art. 5º §3º)",
       "Não cabe pedido de reconsideração da decisão de 1ª instância (art. 30)",
       "Nulidade absoluta: incompetência, prejuízo à defesa, falta de fundamentação (art. 52)",
@@ -187,7 +195,12 @@ pontos que ainda não estavam cobertos.
   {
     tema_id: "tributos-municipais",
     titulo: "Lei 5.767/2001 — Taxas de Instalação/Localização/Funcionamento e Publicidade",
-    conteudo_md: `### Taxa de Fiscalização de Instalação, Localização e Funcionamento
+    conteudo_md: `**Onde entra**: taxa é tributo VINCULADO a uma atuação estatal específica
+(≠ imposto, que independe de contraprestação). Esta lei institui DUAS
+taxas de Guarulhos, AMBAS de PODER DE POLÍCIA (fiscalização) — não há taxa
+de serviço aqui.
+
+### Taxa de Fiscalização de Instalação, Localização e Funcionamento
 - Fato gerador: poder de polícia sobre instalação/localização/
   funcionamento de qualquer estabelecimento (art. 1º).
 - Devida por 2 atividades administrativas indivisíveis: diligências no
@@ -229,6 +242,7 @@ pontos que ainda não estavam cobertos.
 - Ambas as taxas desta lei aplicam-se subsidiariamente as normas do ISS e
   do PAT (arts. 19 e 40).`,
     pontos_decorar: [
+      "Lei 5.767/2001 institui 2 taxas, AMBAS de poder de polícia (não há taxa de serviço)",
       "Taxa ILF: horário especial fora do padrão = acréscimo de 50% (art. 8º)",
       "Taxa ILF: atividade temporária até 90 dias paga 50% da tabela (art. 9º)",
       "Taxa de Publicidade: anúncio no próprio estabelecimento = Tipo 1; fora dele = Tipo 2+ (valor maior)",
@@ -240,7 +254,13 @@ pontos que ainda não estavam cobertos.
   {
     tema_id: "tributos-municipais",
     titulo: "Lei 7.345/2014 — COSIP",
-    conteudo_md: `- Finalidade: custear o serviço de iluminação pública — manutenção,
+    conteudo_md: `**Onde entra**: iluminação pública é serviço indivisível (uti universi),
+então NÃO pode ser custeada por taxa — o STF derrubou a antiga "taxa de
+iluminação" (Súmula Vinculante 41). A EC 39/2002 criou o art. 149-A da CF
+autorizando uma CONTRIBUIÇÃO específica (sui generis: nem taxa nem
+imposto): a COSIP. Constitucionalidade confirmada pelo STF (RE 573.675).
+
+- Finalidade: custear o serviço de iluminação pública — manutenção,
   modernização, instalação, melhoria da rede e (desde a reforma de 2025)
   também sistemas de monitoramento/segurança de logradouros (art. 1º-2º).
 - Contribuinte: pessoa física/jurídica com ligação de energia elétrica
@@ -266,6 +286,7 @@ pontos que ainda não estavam cobertos.
   Obras via Lei 7.965/2021 — pegadinha de reforma administrativa).
 - Reajuste anual conforme índices da ANEEL (art. 6º).`,
     pontos_decorar: [
+      "COSIP = contribuição sui generis (art. 149-A CF); NÃO é taxa (Súmula Vinculante 41) nem imposto",
       "Proprietário de imóvel não edificado paga R$ 3,00/metro linear de testada, junto com o IPTU (desde 2025)",
       "Quem arrecada e repassa a COSIP ao Município é a concessionária de energia (arts. 5º e 9º)",
       "Alíquotas pós-2025: comercial/rural/consumo próprio 4%, industrial 6% sobre a fatura de energia",
@@ -298,7 +319,7 @@ const FLASHCARDS: Flashcard[] = [
   { tema_id: "tributos-municipais", pergunta: "CTM: limites total e individual da Contribuição de Melhoria (art. 203-204)?", resposta_html: "Limite <b>total</b> = custo da obra; limite <b>individual</b> = valorização do imóvel." },
   { tema_id: "tributos-municipais", pergunta: "CTM: prazo mínimo de impugnação da Contribuição de Melhoria?", resposta_html: "<b>30 dias</b>, após publicação prévia de 5 elementos (memorial, orçamento, parcela financiada, zona beneficiada, fator de absorção da valorização)." },
   // Decreto PAT
-  { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: prazo do recurso voluntário (art. 34)?", resposta_html: "<b>20 dias</b> da ciência da decisão de 1ª instância, com efeito devolutivo e suspensivo." },
+  { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: prazo do recurso voluntário (art. 34)?", resposta_html: "<b>30 dias</b> da ciência (Lei 5.420/99, art. 53, redação da Lei 6.164/2006). O art. 34 do decreto ainda diz 20 dias, mas reproduz a redação antiga da lei — está desatualizado; prevalece a lei." },
   { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: quando pode usar edital pra dar ciência de um ato (art. 5º §3º)?", resposta_html: "Só depois de <b>esgotados</b> os meios de ciência pessoal e carta com AR." },
   { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: cabe pedido de reconsideração da decisão de 1ª instância?", resposta_html: "<b>Não</b> (art. 30)." },
   { tema_id: "processo-administrativo-tributario", pergunta: "Decreto 21.066/2000: diferença entre nulidade absoluta e ato anulável (arts. 52 e 54)?", resposta_html: "<b>Absoluta</b>: autoridade incompetente, prejuízo à defesa, falta de fundamentação. <b>Anulável</b>: erro de cálculo ou de capitulação legal — corrige de ofício e reabre prazo de <b>5 dias</b> para impugnação." },
@@ -439,16 +460,16 @@ const QUESTOES: Questao[] = [
   {
     tema_id: "processo-administrativo-tributario",
     origem: "real",
-    enunciado: "Nos termos do Decreto 21.066/2000, que regulamenta a Lei 5.420/99, o prazo para interposição de recurso voluntário contra decisão de 1ª instância no PAT de Guarulhos é de:",
+    enunciado: "No PAT de Guarulhos, o prazo para interposição de recurso voluntário à Junta de Recursos Fiscais contra decisão de 1ª instância é de:",
     alternativas: [
       { letra: "A", texto: "10 dias, sem efeito suspensivo" },
       { letra: "B", texto: "15 dias, apenas com efeito devolutivo" },
       { letra: "C", texto: "20 dias, com efeito devolutivo e suspensivo" },
-      { letra: "D", texto: "30 dias, apenas com efeito suspensivo" },
+      { letra: "D", texto: "30 dias, com efeito devolutivo e suspensivo" },
       { letra: "E", texto: "45 dias, com efeito devolutivo e suspensivo" },
     ],
-    gabarito: "C",
-    explicacao: "Art. 34 do Decreto 21.066/2000: o recurso voluntário deve ser interposto em 20 dias da ciência da decisão de 1ª instância, e tem efeito devolutivo e suspensivo.",
+    gabarito: "D",
+    explicacao: "30 dias, com efeito devolutivo e suspensivo. A Lei 5.420/99, art. 53, com a redação dada pela Lei 6.164/2006, fixa o prazo em 30 dias. Atenção à pegadinha: o Decreto 21.066/2000, art. 34, ainda menciona 20 dias, mas reproduz a redação original da lei — como o decreto é de 2000 (anterior à Lei 6.164/2006) e não pode fixar prazo contra a lei, prevalece o prazo de 30 dias.",
     fonte: "Decreto 21.066/2000, art. 34",
   },
   {
@@ -615,6 +636,8 @@ async function main() {
   await supabase.from("resumos").delete().in("titulo", titulosLote2);
   const fontesLote2 = [...new Set(QUESTOES.map((q) => q.fonte))];
   await supabase.from("questoes").delete().in("fonte", fontesLote2);
+  const perguntasLote2 = FLASHCARDS.map((f) => f.pergunta);
+  await supabase.from("flashcards").delete().in("pergunta", perguntasLote2);
 
   const { error: errResumos } = await supabase.from("resumos").insert(RESUMOS);
   if (errResumos) console.error("Erro ao inserir resumos:", errResumos.message);

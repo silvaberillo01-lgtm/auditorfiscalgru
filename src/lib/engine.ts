@@ -80,6 +80,79 @@ export async function marcarResumoConcluido(userId: string, temaId: string): Pro
   return true;
 }
 
+/** Ainda há erros respondidos sem raciocínio escrito neste tema? */
+async function semErrosPendentes(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  temaId: string
+): Promise<boolean> {
+  const { data: questoes } = await supabase.from("questoes").select("id").eq("tema_id", temaId);
+  const ids = (questoes ?? []).map((q) => q.id);
+  if (ids.length === 0) return true;
+  const { data: pendentes } = await supabase
+    .from("respostas")
+    .select("id")
+    .eq("user_id", userId)
+    .in("questao_id", ids)
+    .eq("correta", false)
+    .is("raciocinio", null);
+  return (pendentes?.length ?? 0) === 0;
+}
+
+/**
+ * Move o tema pra "espacando" e semeia a fila de flashcards (1ª revisão
+ * amanhã), sem duplicar reviews já existentes. Idempotente nos flashcards.
+ */
+async function avancarParaEspacando(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  temaId: string
+) {
+  await supabase
+    .from("tema_progresso")
+    .update({ fase: "espacando" satisfies Fase, corrigido_em: new Date().toISOString() })
+    .eq("user_id", userId)
+    .eq("tema_id", temaId);
+
+  const { data: flashcards } = await supabase
+    .from("flashcards")
+    .select("id")
+    .eq("tema_id", temaId);
+
+  const amanhaISO = somarDias(hojeISO(), 1);
+
+  for (const fc of flashcards ?? []) {
+    const { data: existente } = await supabase
+      .from("flashcard_reviews")
+      .select("flashcard_id")
+      .eq("user_id", userId)
+      .eq("flashcard_id", fc.id)
+      .maybeSingle();
+    if (!existente) {
+      await supabase.from("flashcard_reviews").insert({
+        user_id: userId,
+        flashcard_id: fc.id,
+        intervalo_dias: 1,
+        proxima_revisao: amanhaISO,
+      });
+    }
+  }
+}
+
+/**
+ * corrigindo -> espacando quando não sobrou nenhum erro a corrigir (gabaritou
+ * o tema ou já escreveu o raciocínio de todos os erros). Seguro/idempotente:
+ * só age se a fase for "corrigindo" e não houver erro pendente.
+ */
+export async function verificarConclusaoCorrecao(userId: string, temaId: string): Promise<boolean> {
+  const supabase = await createClient();
+  const progresso = await garantirProgresso(supabase, userId, temaId);
+  if (progresso.fase !== "corrigindo") return false;
+  if (!(await semErrosPendentes(supabase, userId, temaId))) return false;
+  await avancarParaEspacando(supabase, userId, temaId);
+  return true;
+}
+
 /**
  * Verifica se todas as questões "reais" do tema já foram respondidas e, se
  * sim, avança testando -> corrigindo. Variações são treino extra opcional e
@@ -129,6 +202,12 @@ export async function verificarConclusaoTeste(userId: string, temaId: string): P
     })
     .eq("user_id", userId)
     .eq("tema_id", temaId);
+
+  // Gabaritou (ou não há nada a corrigir) → não fica preso em "corrigindo",
+  // libera direto pro espaçamento.
+  if (await semErrosPendentes(supabase, userId, temaId)) {
+    await avancarParaEspacando(supabase, userId, temaId);
+  }
   return true;
 }
 
@@ -174,50 +253,8 @@ export async function corrigirResposta(params: {
   const progresso = await garantirProgresso(supabase, userId, temaId);
   if (progresso.fase !== "corrigindo") return false;
 
-  const { data: questoes } = await supabase
-    .from("questoes")
-    .select("id")
-    .eq("tema_id", temaId);
-
-  const { data: errosSemRaciocinio } = await supabase
-    .from("respostas")
-    .select("id")
-    .eq("user_id", userId)
-    .in("questao_id", (questoes ?? []).map((q) => q.id))
-    .eq("correta", false)
-    .is("raciocinio", null);
-
-  if ((errosSemRaciocinio?.length ?? 0) > 0) return false;
-
-  await supabase
-    .from("tema_progresso")
-    .update({ fase: "espacando" satisfies Fase, corrigido_em: new Date().toISOString() })
-    .eq("user_id", userId)
-    .eq("tema_id", temaId);
-
-  const { data: flashcards } = await supabase
-    .from("flashcards")
-    .select("id")
-    .eq("tema_id", temaId);
-
-  const amanhaISO = somarDias(hojeISO(), 1);
-
-  for (const fc of flashcards ?? []) {
-    const { data: existente } = await supabase
-      .from("flashcard_reviews")
-      .select("flashcard_id")
-      .eq("user_id", userId)
-      .eq("flashcard_id", fc.id)
-      .maybeSingle();
-    if (!existente) {
-      await supabase.from("flashcard_reviews").insert({
-        user_id: userId,
-        flashcard_id: fc.id,
-        intervalo_dias: 1,
-        proxima_revisao: amanhaISO,
-      });
-    }
-  }
+  if (!(await semErrosPendentes(supabase, userId, temaId))) return false;
+  await avancarParaEspacando(supabase, userId, temaId);
   return true;
 }
 
