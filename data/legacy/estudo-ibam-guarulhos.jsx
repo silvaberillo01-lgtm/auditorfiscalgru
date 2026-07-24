@@ -597,7 +597,7 @@ const ORIGINAIS = [
       "prazo em dias úteis; vista facultada durante os prazos de defesa ou recurso.",
     ],
     g: 2,
-    c: "[VERIFICAR: prazo e contagem no PAT de Guarulhos — Lei 5.420/1999 art. 53 vs. Decreto 21.066/2000 art. 34. ESTE É EXATAMENTE O CONFLITO 30 dias × 20 dias que está na sua lista de pendências!] O gabarito 'C' aqui é o de Arraial, NÃO de Guarulhos. Use esta questão como gatilho para resolver o conflito de prazo do PAT antes do exame. Padrão da banca: sempre testar 'dias úteis × dias corridos' + escopo do direito de vista.",
+    c: "[CONFLITO RESOLVIDO: no PAT de Guarulhos prevalece 30 dias — a Lei 6.164/2006 deu nova redação ao art. 53 da Lei 5.420/1999; o Decreto 21.066/2000 (art. 34, 20 dias) é anterior e reproduz a redação antiga, decreto não fixa prazo contra lei posterior.] O gabarito 'C' aqui é o de Arraial, NÃO de Guarulhos. Padrão da banca: sempre testar 'dias úteis × dias corridos' + escopo do direito de vista.",
   },
   // ---------- CONTABILIDADE FISCAL (Prodesan 2025 / Santo André 2015) ----------
   {
