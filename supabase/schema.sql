@@ -107,8 +107,12 @@ create table if not exists flashcard_reviews (
   ultima_revisao date,
   streak_acertos int default 0,
   ciclos_completos int default 0,
+  erros int not null default 0, -- total de vezes que o card foi errado (pra saber o que aprofundar)
   primary key (user_id, flashcard_id)
 );
+
+-- Migração pra bases que já rodaram a versão anterior sem a coluna `erros`.
+alter table flashcard_reviews add column if not exists erros int not null default 0;
 
 -- Respostas do usuário (substitui o Excel do caderno atual)
 create table if not exists respostas (

@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { Fase } from "@/lib/types";
+import { hojeISO, somarDias } from "@/lib/prazo";
 
 const SEQUENCIA_INTERVALOS = [1, 3, 7, 15, 30, 60];
 
@@ -8,10 +9,6 @@ function proximoIntervalo(atual: number) {
   const idx = SEQUENCIA_INTERVALOS.indexOf(atual);
   if (idx === -1) return Math.min(atual * 2, 60);
   return SEQUENCIA_INTERVALOS[Math.min(idx + 1, SEQUENCIA_INTERVALOS.length - 1)];
-}
-
-function hojeISO() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 async function garantirProgresso(
@@ -203,9 +200,7 @@ export async function corrigirResposta(params: {
     .select("id")
     .eq("tema_id", temaId);
 
-  const amanha = new Date();
-  amanha.setDate(amanha.getDate() + 1);
-  const amanhaISO = amanha.toISOString().slice(0, 10);
+  const amanhaISO = somarDias(hojeISO(), 1);
 
   for (const fc of flashcards ?? []) {
     const { data: existente } = await supabase
@@ -258,20 +253,31 @@ export async function revisarFlashcard(params: {
     novoStreak = 0;
   }
 
-  const proxima = new Date();
-  proxima.setDate(proxima.getDate() + novoIntervalo);
+  const proximaISO = somarDias(hoje, novoIntervalo);
 
   await supabase
     .from("flashcard_reviews")
     .update({
       intervalo_dias: novoIntervalo,
-      proxima_revisao: proxima.toISOString().slice(0, 10),
+      proxima_revisao: proximaISO,
       ultima_revisao: hoje,
       streak_acertos: novoStreak,
       ciclos_completos: novosCiclos,
     })
     .eq("user_id", userId)
     .eq("flashcard_id", flashcardId);
+
+  // Contador acumulado de erros por card — alimenta o painel "cards que você
+  // mais erra" na tela de revisar. Update separado (best-effort): se a coluna
+  // ainda não existir na base, o supabase só devolve erro nessa chamada e o
+  // resto da revisão segue normal.
+  if (!acertou) {
+    await supabase
+      .from("flashcard_reviews")
+      .update({ erros: (review.erros ?? 0) + 1 })
+      .eq("user_id", userId)
+      .eq("flashcard_id", flashcardId);
+  }
 
   await registrarAtividade(supabase, userId);
 

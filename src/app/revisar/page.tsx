@@ -1,11 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireAprovado } from "@/lib/auth";
+import { getFlashcardsMaisErrados } from "@/lib/queries";
+import { hojeISO } from "@/lib/prazo";
+import FlashcardsErrosPanel from "@/components/flashcards-erros-panel";
 import FlashcardQueue from "./flashcard-queue";
 
 export default async function RevisarPage() {
   const { user } = await requireAprovado();
   const supabase = await createClient();
-  const hoje = new Date().toISOString().slice(0, 10);
+  const hoje = hojeISO();
+
+  const flashcardsErrados = await getFlashcardsMaisErrados(user.id);
 
   const { data } = await supabase
     .from("flashcard_reviews")
@@ -38,6 +43,7 @@ export default async function RevisarPage() {
     <div className="space-y-4">
       <h1 className="text-xl font-semibold text-neutral-100">Revisar</h1>
       <FlashcardQueue cards={cards} />
+      <FlashcardsErrosPanel cards={flashcardsErrados} />
     </div>
   );
 }

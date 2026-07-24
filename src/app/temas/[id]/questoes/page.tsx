@@ -5,6 +5,7 @@ import { getTema, getAnotacoesDoTema, getRespostasDoTema } from "@/lib/queries";
 import { verificarConclusaoTeste } from "@/lib/engine";
 import type { Questao } from "@/lib/types";
 import NotesPanel from "@/components/notes-panel";
+import EsquecerButton from "../esquecer-button";
 import QuestoesTabs from "./questoes-tabs";
 
 export default async function QuestoesPage({
@@ -37,11 +38,18 @@ export default async function QuestoesPage({
       {(questoes ?? []).length === 0 ? (
         <p className="text-sm text-neutral-500">Nenhuma questão cadastrada para este tema ainda.</p>
       ) : (
-        <QuestoesTabs
-          temaId={id}
-          questoes={questoes as Questao[]}
-          respostasSalvas={Object.fromEntries(respostasSalvas)}
-        />
+        <>
+          <QuestoesTabs
+            temaId={id}
+            questoes={questoes as Questao[]}
+            respostasSalvas={Object.fromEntries(respostasSalvas)}
+          />
+          {respostasSalvas.size > 0 && (
+            <div className="pt-2 text-center">
+              <EsquecerButton temaId={id} temaNome={tema.nome} />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
