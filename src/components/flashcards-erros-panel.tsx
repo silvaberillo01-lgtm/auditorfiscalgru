@@ -15,10 +15,11 @@ export default function FlashcardsErrosPanel({ cards }: { cards: FlashcardErrado
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-sm font-medium text-neutral-100">
-            🧠 Flashcards que você mais erra ({cards.length})
+            🧠 Flashcards errados na última revisão ({cards.length})
           </p>
           <p className="text-xs text-neutral-500">
-            Copie tudo e cole numa IA pra ela te explicar com analogias e exemplos.
+            Só o que você errou da última vez — reacertou, sai da lista. Copie e cole numa IA
+            pra ela te explicar com analogias e exemplos.
           </p>
         </div>
         <button

@@ -385,32 +385,66 @@ export async function getRespostasDoTema(userId: string, temaId: string) {
   return ultimaPorQuestao;
 }
 
-/** Erros já corrigidos (com raciocínio preenchido) do tema, pra copiar pra uma IA depois. */
+/**
+ * Erros pra aprofundar com a IA: só as questões cuja ÚLTIMA resposta ainda é
+ * errada (uma entrada por questão, com o raciocínio corrigido mais recente).
+ * Quem refez a questão e acertou sai da lista — senão o painel manda pra IA
+ * erro antigo já superado.
+ */
 export async function getErrosCorrigidosDoTema(userId: string, temaId: string) {
   const supabase = await createClient();
   const { data: questoes } = await supabase.from("questoes").select("id").eq("tema_id", temaId);
   const questaoIds = (questoes ?? []).map((q) => q.id);
   if (questaoIds.length === 0) return [];
 
-  const { data } = await supabase
+  const { data: todas } = await supabase
     .from("respostas")
-    .select("id, resposta, raciocinio, respondida_em, questoes(enunciado, gabarito, explicacao)")
+    .select("questao_id, correta, respondida_em")
     .eq("user_id", userId)
     .in("questao_id", questaoIds)
+    .order("respondida_em", { ascending: false });
+
+  const aindaErradas = new Set<string>();
+  const vistas = new Set<string>();
+  for (const r of todas ?? []) {
+    if (vistas.has(r.questao_id)) continue;
+    vistas.add(r.questao_id);
+    if (!r.correta) aindaErradas.add(r.questao_id);
+  }
+  if (aindaErradas.size === 0) return [];
+
+  const { data } = await supabase
+    .from("respostas")
+    .select("id, questao_id, resposta, raciocinio, respondida_em, questoes(enunciado, gabarito, explicacao)")
+    .eq("user_id", userId)
+    .in("questao_id", [...aindaErradas])
     .eq("correta", false)
     .not("raciocinio", "is", null)
     .order("respondida_em", { ascending: false });
 
-  return (data ?? []).map((r) => ({
-    id: r.id as string,
-    resposta: r.resposta as string | null,
-    raciocinio: r.raciocinio as string | null,
-    questao: r.questoes as unknown as {
-      enunciado: string;
-      gabarito: string | null;
-      explicacao: string | null;
-    } | null,
-  }));
+  const questaoJaListada = new Set<string>();
+  const erros: {
+    id: string;
+    resposta: string | null;
+    raciocinio: string | null;
+    questao: { enunciado: string; gabarito: string | null; explicacao: string | null } | null;
+  }[] = [];
+  for (const r of data ?? []) {
+    const qid = r.questao_id as string;
+    if (questaoJaListada.has(qid)) continue;
+    questaoJaListada.add(qid);
+    erros.push({
+      id: r.id as string,
+      resposta: r.resposta as string | null,
+      raciocinio: r.raciocinio as string | null,
+      questao: r.questoes as unknown as {
+        enunciado: string;
+        gabarito: string | null;
+        explicacao: string | null;
+      } | null,
+    });
+  }
+  return erros;
 }
 
 /** Quantos erros já respondidos ainda não têm raciocínio escrito (pra mostrar o link de corrigir). */
@@ -453,12 +487,12 @@ export async function getAtividadeRecente(userId: string, dias = 14) {
   return resultado;
 }
 
-/** Números da fila de repetição espaçada: quantos cards já entraram, quantos vencem hoje, quantos você já errou. */
+/** Números da fila de repetição espaçada: quantos cards já entraram, quantos vencem hoje, quantos estão errados agora. */
 export async function getEstatisticasFlashcards(userId: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("flashcard_reviews")
-    .select("proxima_revisao, erros, ciclos_completos")
+    .select("proxima_revisao, erros, streak_acertos, ciclos_completos")
     .eq("user_id", userId);
 
   const hoje = hojeISO();
@@ -466,7 +500,11 @@ export async function getEstatisticasFlashcards(userId: string) {
   return {
     totalNaFila: lista.length,
     vencendoHoje: lista.filter((r) => (r.proxima_revisao as string) <= hoje).length,
-    comErro: lista.filter((r) => ((r.erros as number) ?? 0) > 0).length,
+    // mesmo critério do painel de aprofundar: erradas na última passada, não
+    // o acumulado histórico (que nunca diminuía, mesmo reacertando o card)
+    comErro: lista.filter(
+      (r) => ((r.erros as number) ?? 0) > 0 && ((r.streak_acertos as number) ?? 0) === 0
+    ).length,
     dominados: lista.filter((r) => ((r.ciclos_completos as number) ?? 0) >= 2).length,
   };
 }
@@ -479,7 +517,14 @@ export type FlashcardErrado = {
   erros: number;
 };
 
-/** Flashcards que o usuário já errou (mais errados primeiro), pra revisar com uma IA. */
+/**
+ * Flashcards a aprofundar com a IA: só os que você errou na ÚLTIMA passada
+ * (mais errados primeiro). `erros` é um contador acumulado que nunca zera —
+ * sozinho, ele mantinha na lista card que você já reacertou depois. O filtro
+ * de verdade é `streak_acertos = 0`: o streak volta a zero a cada erro e
+ * cresce a cada acerto, então zero com `erros > 0` significa exatamente
+ * "errou e ainda não acertou desde então".
+ */
 export async function getFlashcardsMaisErrados(userId: string): Promise<FlashcardErrado[]> {
   const supabase = await createClient();
 
@@ -488,6 +533,7 @@ export async function getFlashcardsMaisErrados(userId: string): Promise<Flashcar
     .select("flashcard_id, erros, flashcards(pergunta, resposta_html, temas(nome))")
     .eq("user_id", userId)
     .gt("erros", 0)
+    .eq("streak_acertos", 0)
     .order("erros", { ascending: false });
 
   return (data ?? [])

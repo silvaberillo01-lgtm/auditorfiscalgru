@@ -190,7 +190,7 @@ export default async function EstatisticasPage() {
           </div>
           <div>
             <p className="text-xl font-bold text-[#ef8880]">{flashStats.comErro}</p>
-            <p className="text-xs text-neutral-500">cards já errados</p>
+            <p className="text-xs text-neutral-500">errados na última</p>
           </div>
           <div>
             <p className="text-xl font-bold text-[#cda3e6]">{flashStats.dominados}</p>
