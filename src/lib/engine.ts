@@ -230,6 +230,21 @@ export async function registrarResposta(params: {
   });
   await registrarAtividade(supabase, userId);
 
+  if (!correta) {
+    // "Resolver questões" fica disponível mesmo depois de espacando/dominado
+    // (pra treinar de novo). Errar nesse refazer não pode virar erro órfão:
+    // reabre a correção, sem mexer na fila de flashcards já em andamento.
+    const progresso = await garantirProgresso(supabase, userId, temaId);
+    if (progresso.fase === "espacando" || progresso.fase === "dominado") {
+      await supabase
+        .from("tema_progresso")
+        .update({ fase: "corrigindo" satisfies Fase })
+        .eq("user_id", userId)
+        .eq("tema_id", temaId);
+      return true;
+    }
+  }
+
   return verificarConclusaoTeste(userId, temaId);
 }
 
