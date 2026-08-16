@@ -95,6 +95,70 @@ export async function excluirAnotacaoAction(anotacaoId: string, temaId: string |
   revalidatePath("/anotacoes");
 }
 
+// --- Simulado -------------------------------------------------------------
+// As respostas do simulado vivem em simulado_respostas, fora da engine de
+// fase: nada aqui toca respostas/tema_progresso, só o streak de atividade.
+
+export async function responderSimuladoAction(params: {
+  simuladoId: string;
+  questaoId: string;
+  resposta: string;
+}) {
+  const { user, supabase } = await requireAprovadoAction();
+  const { error } = await supabase.from("simulado_respostas").upsert(
+    {
+      user_id: user.id,
+      questao_id: params.questaoId,
+      resposta: params.resposta,
+      respondida_em: new Date().toISOString(),
+    },
+    { onConflict: "user_id,questao_id" }
+  );
+  if (error) throw new Error(error.message);
+  await engine.registrarAtividadeAvulsa(user.id);
+  revalidatePath("/simulado");
+  revalidatePath(`/simulado/${params.simuladoId}`);
+}
+
+export async function anotarSimuladoAction(params: {
+  simuladoId: string;
+  questaoId: string;
+  anotacao: string;
+}) {
+  const { user, supabase } = await requireAprovadoAction();
+  // upsert em modo merge: só a coluna `anotacao` é alterada — a resposta
+  // (se existir) fica intacta
+  const { error } = await supabase.from("simulado_respostas").upsert(
+    {
+      user_id: user.id,
+      questao_id: params.questaoId,
+      anotacao: params.anotacao || null,
+    },
+    { onConflict: "user_id,questao_id" }
+  );
+  if (error) throw new Error(error.message);
+  revalidatePath(`/simulado/${params.simuladoId}`);
+}
+
+/** Apaga só as respostas/anotações DESTE usuário no simulado — o caderno normal não é tocado. */
+export async function refazerSimuladoAction(simuladoId: string) {
+  const { user, supabase } = await requireAprovadoAction();
+  const { data: questoes } = await supabase
+    .from("simulado_questoes")
+    .select("id")
+    .eq("simulado_id", simuladoId);
+  const ids = (questoes ?? []).map((q) => q.id);
+  if (ids.length > 0) {
+    await supabase
+      .from("simulado_respostas")
+      .delete()
+      .eq("user_id", user.id)
+      .in("questao_id", ids);
+  }
+  revalidatePath("/simulado");
+  revalidatePath(`/simulado/${simuladoId}`);
+}
+
 export async function esquecerRespostasAction(temaId: string) {
   const { user } = await requireAprovadoAction();
   await engine.esquecerRespostasDoTema(user.id, temaId);

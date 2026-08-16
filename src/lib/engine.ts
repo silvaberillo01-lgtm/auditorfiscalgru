@@ -57,6 +57,15 @@ async function registrarAtividade(
   }
 }
 
+/**
+ * Registra ação avulsa no streak (usada pelo simulado, que fica fora da
+ * engine de fase — responder simulado não mexe em tema_progresso/respostas).
+ */
+export async function registrarAtividadeAvulsa(userId: string) {
+  const supabase = await createClient();
+  await registrarAtividade(supabase, userId);
+}
+
 /** Abriu a página de resumo do tema pela primeira vez. */
 export async function abrirResumo(userId: string, temaId: string) {
   const supabase = await createClient();

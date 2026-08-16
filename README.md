@@ -87,6 +87,9 @@ npx tsx scripts/seed-temas.ts
 # conteúdo curado das 4 leis municipais + Português + RLM (lote 2)
 npx tsx scripts/seed-lote2.ts
 npx tsx scripts/seed-portugues-rlm.ts
+
+# simulado de 40 questões (semanas 1-6) pra treinar em condições de prova
+npx tsx scripts/seed-simulado.ts
 ```
 
 ### 3.1 Migrar os 3 artefatos antigos (opcional)
@@ -185,6 +188,9 @@ continuam exigindo conexão.
 - `scripts/seed-portugues-rlm.ts` — resumo completo de Português e resumo
   curto (só fórmulas) de Raciocínio Lógico/Matemática Financeira, com mais
   questões de treino em RLM.
+- `scripts/seed-simulado.ts` — popula `simulados`/`simulado_questoes` com o
+  Simulado 1 (40 questões, semanas 1-6), misturando provas reais IBAM com
+  inéditas no estilo da banca.
 - `scripts/migrate.ts` — migra questões/resumos/flashcards dos 3 artefatos
   antigos.
 - `scripts/seed-plano.ts` — extrai o cronograma de 9 semanas do guia
@@ -214,6 +220,11 @@ continuam exigindo conexão.
 - `src/app/anotacoes/` — todas as anotações, agrupadas por data, com
   filtro por tema e botão de copiar (individual ou do dia todo) em
   formato markdown pronto pra colar numa IA.
+- `src/app/simulado/` — provas avulsas em condições de prova (sem feedback
+  imediato, gabarito comentado só no final, anotação por questão). Fica
+  totalmente separado do caderno de questões e da engine de fase: as
+  respostas vivem em `simulado_respostas`, então refazer um simulado nunca
+  zera o progresso dos temas.
 - `src/app/principios/` — as 6 regras de como estudar (conteúdo estático,
   vem do guia antigo).
 - `src/components/toast.tsx` — toast motivacional que aparece quando uma

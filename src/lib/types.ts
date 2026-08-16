@@ -72,6 +72,33 @@ export type Resposta = {
   respondida_em: string;
 };
 
+export type Simulado = {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  ordem: number | null;
+};
+
+export type SimuladoQuestao = {
+  id: string;
+  simulado_id: string;
+  numero: number;
+  tema_id: string | null;
+  origem: string | null; // 'real' | 'estilo'
+  enunciado: string | null;
+  alternativas: Alternativa[] | null;
+  gabarito: string | null;
+  explicacao: string | null;
+  fonte: string | null;
+};
+
+export type SimuladoResposta = {
+  questao_id: string;
+  resposta: string | null;
+  anotacao: string | null;
+  respondida_em: string | null;
+};
+
 export type PlanoSemana = {
   semana: number;
   periodo_inicio: string | null;

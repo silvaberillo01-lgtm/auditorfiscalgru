@@ -1,6 +1,15 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { Anotacao, Fase, PlanoSemana, Tema, TemaProgresso } from "@/lib/types";
+import type {
+  Anotacao,
+  Fase,
+  PlanoSemana,
+  Simulado,
+  SimuladoQuestao,
+  SimuladoResposta,
+  Tema,
+  TemaProgresso,
+} from "@/lib/types";
 import { FASE_ORDEM } from "@/lib/fase-ui";
 import { statusSemana, type StatusPrazo } from "@/lib/prazo";
 
@@ -279,6 +288,76 @@ export async function getAnotacoesComTema(userId: string) {
     ...(a as Anotacao),
     tema_nome: (a as unknown as { temas: { nome: string } | null }).temas?.nome ?? null,
   }));
+}
+
+export type SimuladoComProgresso = Simulado & {
+  totalQuestoes: number;
+  respondidas: number;
+};
+
+/**
+ * Lista os simulados com o progresso do usuário (quantas questões ele já
+ * marcou). Retorna null se as tabelas de simulado ainda não existem no
+ * banco (schema.sql desatualizado) — a página mostra instrução de migração.
+ */
+export async function getSimulados(userId: string): Promise<SimuladoComProgresso[] | null> {
+  const supabase = await createClient();
+  const [{ data: simulados, error }, { data: questoes }, { data: respostas }] = await Promise.all([
+    supabase.from("simulados").select("*").order("ordem", { ascending: true }),
+    supabase.from("simulado_questoes").select("id, simulado_id"),
+    supabase.from("simulado_respostas").select("questao_id, resposta").eq("user_id", userId),
+  ]);
+  if (error) return null;
+
+  const respondidas = new Set(
+    (respostas ?? []).filter((r) => r.resposta).map((r) => r.questao_id)
+  );
+  const porSimulado = new Map<string, { total: number; feitas: number }>();
+  for (const q of questoes ?? []) {
+    const atual = porSimulado.get(q.simulado_id) ?? { total: 0, feitas: 0 };
+    atual.total += 1;
+    if (respondidas.has(q.id)) atual.feitas += 1;
+    porSimulado.set(q.simulado_id, atual);
+  }
+
+  return ((simulados ?? []) as Simulado[]).map((s) => ({
+    ...s,
+    totalQuestoes: porSimulado.get(s.id)?.total ?? 0,
+    respondidas: porSimulado.get(s.id)?.feitas ?? 0,
+  }));
+}
+
+/** Um simulado com as questões em ordem de prova e as respostas/anotações do usuário. */
+export async function getSimuladoCompleto(userId: string, simuladoId: string) {
+  const supabase = await createClient();
+  const [{ data: simulado }, { data: questoes }, { data: temas }] = await Promise.all([
+    supabase.from("simulados").select("*").eq("id", simuladoId).maybeSingle(),
+    supabase
+      .from("simulado_questoes")
+      .select("*")
+      .eq("simulado_id", simuladoId)
+      .order("numero", { ascending: true }),
+    supabase.from("temas").select("id, nome"),
+  ]);
+  if (!simulado) return null;
+
+  const questaoIds = (questoes ?? []).map((q) => q.id);
+  const respostasMap = new Map<string, SimuladoResposta>();
+  if (questaoIds.length > 0) {
+    const { data: respostas } = await supabase
+      .from("simulado_respostas")
+      .select("questao_id, resposta, anotacao, respondida_em")
+      .eq("user_id", userId)
+      .in("questao_id", questaoIds);
+    for (const r of respostas ?? []) respostasMap.set(r.questao_id, r);
+  }
+
+  return {
+    simulado: simulado as Simulado,
+    questoes: (questoes ?? []) as SimuladoQuestao[],
+    respostas: respostasMap,
+    temaNomes: new Map((temas ?? []).map((t) => [t.id as string, t.nome as string])),
+  };
 }
 
 export type EstatisticaTema = { totalQuestoes: number; respondidas: number; acertos: number };

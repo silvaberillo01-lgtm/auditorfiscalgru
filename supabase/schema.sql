@@ -55,6 +55,42 @@ create table if not exists plano_semanas (
   temas text[]
 );
 
+-- Simulados (provas avulsas pra treinar em condições de prova) — global.
+-- O progresso fica em simulado_respostas, totalmente separado de `respostas`:
+-- responder um simulado NÃO mexe na engine de fase nem nas estatísticas
+-- do caderno de questões normal.
+create table if not exists simulados (
+  id text primary key,              -- slug, ex: 'simulado-1'
+  titulo text not null,
+  descricao text,
+  ordem int
+);
+
+create table if not exists simulado_questoes (
+  id uuid primary key default gen_random_uuid(),
+  simulado_id text not null references simulados(id) on delete cascade,
+  numero int not null,              -- posição da questão na prova (1..N)
+  tema_id text references temas(id) on delete set null,
+  origem text,                      -- 'real' | 'estilo' (inédita no estilo IBAM)
+  enunciado text,
+  alternativas jsonb,               -- [{letra:'A', texto:'...'}, ...]
+  gabarito text,
+  explicacao text,
+  fonte text,
+  unique (simulado_id, numero)
+);
+
+-- Respostas + anotações do simulado, por usuário (1 linha por questão;
+-- pode trocar a resposta até conferir o gabarito)
+create table if not exists simulado_respostas (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  questao_id uuid not null references simulado_questoes(id) on delete cascade,
+  resposta text,
+  anotacao text,
+  respondida_em timestamptz default now(),
+  primary key (user_id, questao_id)
+);
+
 -- Perfis — criado automaticamente no primeiro login (trigger abaixo).
 -- silva.mateush01@gmail.com é aprovado automaticamente (admin); qualquer
 -- outro e-mail entra com aprovado=false até você liberar manualmente.
@@ -154,6 +190,8 @@ create index if not exists idx_atividade_diaria_user on atividade_diaria(user_id
 create index if not exists idx_anotacoes_user on anotacoes(user_id);
 create index if not exists idx_anotacoes_tema on anotacoes(tema_id);
 create index if not exists idx_anotacoes_data on anotacoes(data desc);
+create index if not exists idx_simulado_questoes_simulado on simulado_questoes(simulado_id);
+create index if not exists idx_simulado_respostas_user on simulado_respostas(user_id);
 
 -- Row Level Security ---------------------------------------------------
 -- Conteúdo (temas/resumos/questoes/flashcards/plano_semanas) é global,
@@ -182,6 +220,15 @@ create policy "flashcards: leitura autenticada" on flashcards for select to auth
 
 drop policy if exists "plano_semanas: leitura autenticada" on plano_semanas;
 create policy "plano_semanas: leitura autenticada" on plano_semanas for select to authenticated using (true);
+
+alter table simulados enable row level security;
+alter table simulado_questoes enable row level security;
+
+drop policy if exists "simulados: leitura autenticada" on simulados;
+create policy "simulados: leitura autenticada" on simulados for select to authenticated using (true);
+
+drop policy if exists "simulado_questoes: leitura autenticada" on simulado_questoes;
+create policy "simulado_questoes: leitura autenticada" on simulado_questoes for select to authenticated using (true);
 
 alter table perfis enable row level security;
 alter table tema_progresso enable row level security;
@@ -216,4 +263,10 @@ create policy "atividade_diaria: crud próprio" on atividade_diaria
 
 drop policy if exists "anotacoes: crud próprio" on anotacoes;
 create policy "anotacoes: crud próprio" on anotacoes
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+alter table simulado_respostas enable row level security;
+
+drop policy if exists "simulado_respostas: crud próprio" on simulado_respostas;
+create policy "simulado_respostas: crud próprio" on simulado_respostas
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
