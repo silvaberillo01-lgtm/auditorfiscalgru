@@ -8,6 +8,7 @@ import {
   responderSimuladoAction,
 } from "@/app/actions";
 import type { Simulado, SimuladoQuestao, SimuladoResposta } from "@/lib/types";
+import CopiarErrosSimulado, { type ErroSimulado } from "./copiar-erros-simulado";
 
 /**
  * Modo prova: marca as alternativas sem feedback imediato (dá pra trocar de
@@ -53,22 +54,33 @@ export default function SimuladoRunner({
     if (!mostrarGabarito) return null;
     let acertos = 0;
     const porTema = new Map<string, { nome: string; acertos: number; total: number }>();
+    const erros: ErroSimulado[] = [];
     for (const q of questoes) {
       const temaId = q.tema_id ?? "outros";
-      const atual = porTema.get(temaId) ?? {
-        nome: temaNomes[temaId] ?? temaId,
-        acertos: 0,
-        total: 0,
-      };
+      const nomeTema = temaNomes[temaId] ?? temaId;
+      const atual = porTema.get(temaId) ?? { nome: nomeTema, acertos: 0, total: 0 };
       atual.total += 1;
-      if (respostas[q.id] && respostas[q.id] === q.gabarito) {
+      const minhaResposta = respostas[q.id] ?? null;
+      if (minhaResposta && minhaResposta === q.gabarito) {
         acertos += 1;
         atual.acertos += 1;
+      } else if (minhaResposta) {
+        // respondida errada — só entra na lista de erros quem foi de fato tentado
+        erros.push({
+          numero: q.numero,
+          temaNome: nomeTema,
+          enunciado: q.enunciado,
+          alternativas: q.alternativas,
+          minhaResposta,
+          gabarito: q.gabarito,
+          explicacao: q.explicacao,
+          anotacao: anotacoes[q.id] ?? null,
+        });
       }
       porTema.set(temaId, atual);
     }
-    return { acertos, porTema: [...porTema.values()] };
-  }, [mostrarGabarito, questoes, respostas, temaNomes]);
+    return { acertos, porTema: [...porTema.values()], erros };
+  }, [mostrarGabarito, questoes, respostas, anotacoes, temaNomes]);
 
   function responder(questaoId: string, letra: string) {
     if (mostrarGabarito) return;
@@ -228,6 +240,10 @@ export default function SimuladoRunner({
             </div>
           </div>
         </div>
+      )}
+
+      {mostrarGabarito && resultado && (
+        <CopiarErrosSimulado simuladoTitulo={simulado.titulo} erros={resultado.erros} />
       )}
 
       {/* questões */}
