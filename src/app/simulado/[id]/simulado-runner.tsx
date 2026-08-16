@@ -8,7 +8,7 @@ import {
   responderSimuladoAction,
 } from "@/app/actions";
 import type { Simulado, SimuladoQuestao, SimuladoResposta } from "@/lib/types";
-import CopiarErrosSimulado, { type ErroSimulado } from "./copiar-erros-simulado";
+import CopiarErrosSimulado, { type ItemRevisaoSimulado } from "./copiar-erros-simulado";
 
 /**
  * Modo prova: marca as alternativas sem feedback imediato (dá pra trocar de
@@ -54,19 +54,25 @@ export default function SimuladoRunner({
     if (!mostrarGabarito) return null;
     let acertos = 0;
     const porTema = new Map<string, { nome: string; acertos: number; total: number }>();
-    const erros: ErroSimulado[] = [];
+    const itensRevisao: ItemRevisaoSimulado[] = [];
     for (const q of questoes) {
       const temaId = q.tema_id ?? "outros";
       const nomeTema = temaNomes[temaId] ?? temaId;
       const atual = porTema.get(temaId) ?? { nome: nomeTema, acertos: 0, total: 0 };
       atual.total += 1;
       const minhaResposta = respostas[q.id] ?? null;
-      if (minhaResposta && minhaResposta === q.gabarito) {
+      const anotacao = anotacoes[q.id]?.trim() || null;
+      const acertou = !!minhaResposta && minhaResposta === q.gabarito;
+      if (acertou) {
         acertos += 1;
         atual.acertos += 1;
-      } else if (minhaResposta) {
-        // respondida errada — só entra na lista de erros quem foi de fato tentado
-        erros.push({
+      }
+
+      // entra na revisão quem errou (respondeu diferente do gabarito) OU tem
+      // anotação — mesmo tendo acertado, ou mesmo sem ter respondido ainda
+      const errou = !!minhaResposta && !acertou;
+      if (errou || anotacao) {
+        itensRevisao.push({
           numero: q.numero,
           temaNome: nomeTema,
           enunciado: q.enunciado,
@@ -74,12 +80,13 @@ export default function SimuladoRunner({
           minhaResposta,
           gabarito: q.gabarito,
           explicacao: q.explicacao,
-          anotacao: anotacoes[q.id] ?? null,
+          anotacao,
+          acertou,
         });
       }
       porTema.set(temaId, atual);
     }
-    return { acertos, porTema: [...porTema.values()], erros };
+    return { acertos, porTema: [...porTema.values()], itensRevisao };
   }, [mostrarGabarito, questoes, respostas, anotacoes, temaNomes]);
 
   function responder(questaoId: string, letra: string) {
@@ -243,7 +250,7 @@ export default function SimuladoRunner({
       )}
 
       {mostrarGabarito && resultado && (
-        <CopiarErrosSimulado simuladoTitulo={simulado.titulo} erros={resultado.erros} />
+        <CopiarErrosSimulado simuladoTitulo={simulado.titulo} itens={resultado.itensRevisao} />
       )}
 
       {/* questões */}

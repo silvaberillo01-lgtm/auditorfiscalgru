@@ -3,27 +3,31 @@
 import { useState } from "react";
 import type { Alternativa } from "@/lib/types";
 
-export type ErroSimulado = {
+export type ItemRevisaoSimulado = {
   numero: number;
   temaNome: string;
   enunciado: string | null;
   alternativas: Alternativa[] | null;
-  minhaResposta: string;
+  minhaResposta: string | null;
   gabarito: string | null;
   explicacao: string | null;
   anotacao: string | null;
+  acertou: boolean;
 };
 
-function blocoParaIA(simuladoTitulo: string, erros: ErroSimulado[]) {
-  const partes = erros.map((e) => {
+function blocoParaIA(simuladoTitulo: string, itens: ItemRevisaoSimulado[]) {
+  const partes = itens.map((e) => {
     const alts = (e.alternativas ?? []).map((a) => `${a.letra}) ${a.texto}`).join("\n");
+    const statusResposta = e.minhaResposta
+      ? `Minha resposta: ${e.minhaResposta} (${e.acertou ? "acertei" : "errei"})`
+      : "Minha resposta: — (não respondida)";
     const linhas = [
       `### Questão ${e.numero} — ${e.temaNome}`,
       e.enunciado ?? "",
       "",
       alts,
       "",
-      `Minha resposta: ${e.minhaResposta}`,
+      statusResposta,
       `Gabarito: ${e.gabarito ?? "—"}`,
     ];
     if (e.explicacao) linhas.push(`Explicação: ${e.explicacao}`);
@@ -31,10 +35,10 @@ function blocoParaIA(simuladoTitulo: string, erros: ErroSimulado[]) {
     return linhas.join("\n");
   });
 
-  const instrucoes = `Sou leigo nesses temas — errei essas questões num simulado pra concurso e quero entender onde travei o raciocínio. Pra cada questão abaixo:
+  const instrucoes = `Sou leigo nesses temas — estou revisando questões de um simulado pra concurso. Algumas eu errei, outras acertei mas anotei alguma coisa na hora porque quero aprofundar mesmo assim. Pra cada questão abaixo:
 
-1. Explique por que minha resposta está errada e por que o gabarito está certo, nos meus termos, sem jargão sem explicar antes.
-2. Se eu escrevi uma anotação, aponte especificamente onde meu raciocínio desviou do certo.
+1. Se eu errei, explique por que minha resposta está errada e por que o gabarito está certo, nos meus termos, sem jargão sem explicar antes.
+2. Se eu acertei mas escrevi uma anotação, comente a anotação: diga se meu raciocínio estava certo, incompleto ou só coincidência, e complete o que faltar.
 3. Se a questão tiver uma "pegadinha" (uma palavra ou detalhe que muda tudo), aponte exatamente qual foi.
 4. Termine com uma pergunta rápida de múltipla escolha pra eu testar se realmente entendi, sem me dar a resposta.
 
@@ -45,30 +49,31 @@ Vá uma de cada vez e espere eu responder antes de seguir pra próxima, se poss�
 
 export default function CopiarErrosSimulado({
   simuladoTitulo,
-  erros,
+  itens,
 }: {
   simuladoTitulo: string;
-  erros: ErroSimulado[];
+  itens: ItemRevisaoSimulado[];
 }) {
   const [copiado, setCopiado] = useState(false);
   const [aberto, setAberto] = useState(false);
 
-  if (erros.length === 0) return null;
+  if (itens.length === 0) return null;
 
   return (
     <div className="rounded-2xl border border-[#E2574C33] bg-[#E2574C0d] p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-sm font-medium text-neutral-100">
-            🧠 Erros pra aprofundar ({erros.length})
+            🧠 Pra revisar ({itens.length})
           </p>
           <p className="text-xs text-neutral-500">
-            Enunciado, gabarito, explicação e suas anotações — pronto pra colar numa IA.
+            Questões que você errou ou anotou algo — enunciado, gabarito, explicação e sua
+            anotação, pronto pra colar numa IA.
           </p>
         </div>
         <button
           onClick={async () => {
-            await navigator.clipboard.writeText(blocoParaIA(simuladoTitulo, erros));
+            await navigator.clipboard.writeText(blocoParaIA(simuladoTitulo, itens));
             setCopiado(true);
             setTimeout(() => setCopiado(false), 1500);
           }}
@@ -87,10 +92,13 @@ export default function CopiarErrosSimulado({
 
       {aberto && (
         <ul className="space-y-2 pt-1 border-t border-[#E2574C33]">
-          {erros.map((e) => (
+          {itens.map((e) => (
             <li key={e.numero} className="text-sm text-neutral-300">
               <p className="font-medium text-neutral-200">
-                {e.numero}. {e.enunciado}
+                {e.numero}. {e.enunciado}{" "}
+                <span className={e.acertou ? "text-[#8ec49c]" : "text-[#ef8880]"}>
+                  ({e.acertou ? "acertou" : "errou"})
+                </span>
               </p>
               {e.anotacao && <p className="mt-1 text-neutral-400">Sua anotação: {e.anotacao}</p>}
             </li>
