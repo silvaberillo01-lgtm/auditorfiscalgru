@@ -85,22 +85,27 @@ export default async function HojePage() {
         </div>
       )}
 
-      {/* Card secundário: o outro item pendente, menor */}
+      {/* Card secundário: tema da semana, quando o principal virou revisão de flashcards —
+          mantém prazo e ação próprios, porque é uma tarefa independente das revisões atrasadas */}
       {temRevisoes && temaDaSemana && (
-        <Link
-          href={rotaDaFase(temaDaSemana.tema.id, temaDaSemana.fase)}
-          className="flex items-center justify-between rounded-xl border border-neutral-800 bg-neutral-900 px-4 py-3 shadow-sm hover:border-neutral-700"
-        >
-          <div>
-            <p className="text-sm font-medium text-neutral-100">{temaDaSemana.tema.nome}</p>
-            <p className="text-xs text-neutral-500">Tema da semana {temaDaSemana.semana}</p>
-          </div>
+        <div className="rounded-xl border border-neutral-800 bg-neutral-900 p-4 shadow-sm">
           <span
-            className={`rounded-full px-2 py-0.5 text-[11px] font-bold tracking-wide ${FASE_BADGE[temaDaSemana.fase]}`}
+            className={`inline-block rounded-full px-2 py-0.5 text-[11px] font-bold tracking-wide ${FASE_BADGE[temaDaSemana.fase]}`}
           >
             {FASE_BADGE_LABEL[temaDaSemana.fase]}
           </span>
-        </Link>
+          <p className="mt-2 text-base font-semibold text-neutral-100">{temaDaSemana.tema.nome}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <p className="text-xs text-neutral-500">Tema da semana {temaDaSemana.semana}</p>
+            {semana && <DeadlineBadge status={semana.status} diasRestantes={semana.diasRestantes} />}
+          </div>
+          <Link
+            href={rotaDaFase(temaDaSemana.tema.id, temaDaSemana.fase)}
+            className={`mt-3 inline-block rounded-full ${FASE_SOLIDA[temaDaSemana.fase]} px-4 py-2 text-xs font-semibold text-white hover:opacity-90`}
+          >
+            {labelAcaoDaFase(temaDaSemana.fase)}
+          </Link>
+        </div>
       )}
 
       {/* Progresso da prova */}

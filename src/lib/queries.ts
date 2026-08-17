@@ -209,11 +209,17 @@ export async function getSemanaDoTema(
   return lista.find((s) => s.temas.some((t) => t.id === temaId)) ?? null;
 }
 
-/** % da prova coberto: soma peso*n_questoes dos temas dominado/espacando dividido pelo total. */
+/**
+ * % da prova coberto: soma o peso dos temas dominado/espacando dividido pelo
+ * peso total. Pondera só por peso (não por peso*n_questoes_prova) porque
+ * n_questoes_prova ainda é placeholder — ver "O que falta preencher" no
+ * README. Trocar a fórmula de volta quando os números reais do edital
+ * entrarem na tabela `temas`.
+ */
 export async function getProgressoProva(userId: string) {
   const supabase = await createClient();
   const [{ data: temas }, { data: progressos }] = await Promise.all([
-    supabase.from("temas").select("id, peso, n_questoes_prova"),
+    supabase.from("temas").select("id, peso"),
     supabase.from("tema_progresso").select("tema_id, fase").eq("user_id", userId),
   ]);
 
@@ -221,7 +227,7 @@ export async function getProgressoProva(userId: string) {
   let total = 0;
   let coberto = 0;
   for (const t of temas ?? []) {
-    const peso = (t.peso ?? 0) * (t.n_questoes_prova ?? 0);
+    const peso = t.peso ?? 0;
     total += peso;
     const fase = faseMap.get(t.id);
     if (fase === "dominado" || fase === "espacando") coberto += peso;
