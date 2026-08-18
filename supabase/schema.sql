@@ -143,8 +143,11 @@ create table if not exists flashcard_reviews (
   ultima_revisao date,
   streak_acertos int default 0,
   ciclos_completos int default 0,
+  anotacao text,
   primary key (user_id, flashcard_id)
 );
+-- se a tabela já existia de uma versão anterior deste schema:
+alter table flashcard_reviews add column if not exists anotacao text;
 
 -- Respostas do usuário (substitui o Excel do caderno atual)
 create table if not exists respostas (

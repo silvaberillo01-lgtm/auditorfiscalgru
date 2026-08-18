@@ -241,8 +241,9 @@ export async function revisarFlashcard(params: {
   temaId: string;
   flashcardId: string;
   acertou: boolean;
+  anotacao?: string | null;
 }): Promise<boolean> {
-  const { userId, temaId, flashcardId, acertou } = params;
+  const { userId, temaId, flashcardId, acertou, anotacao } = params;
   const supabase = await createClient();
 
   const { data: review } = await supabase
@@ -278,6 +279,7 @@ export async function revisarFlashcard(params: {
       ultima_revisao: hoje,
       streak_acertos: novoStreak,
       ciclos_completos: novosCiclos,
+      ...(anotacao !== undefined ? { anotacao: anotacao || null } : {}),
     })
     .eq("user_id", userId)
     .eq("flashcard_id", flashcardId);

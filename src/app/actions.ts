@@ -57,6 +57,7 @@ export async function revisarFlashcardAction(params: {
   temaId: string;
   flashcardId: string;
   acertou: boolean;
+  anotacao?: string | null;
 }) {
   const { user } = await requireAprovadoAction();
   const transicionou = await engine.revisarFlashcard({ userId: user.id, ...params });

@@ -9,7 +9,9 @@ export default async function RevisarPage() {
 
   const { data } = await supabase
     .from("flashcard_reviews")
-    .select("flashcard_id, proxima_revisao, flashcards(id, tema_id, pergunta, resposta_html, temas(nome))")
+    .select(
+      "flashcard_id, proxima_revisao, anotacao, flashcards(id, tema_id, pergunta, resposta_html, temas(nome))"
+    )
     .eq("user_id", user.id)
     .lte("proxima_revisao", hoje)
     .order("proxima_revisao", { ascending: true });
@@ -30,6 +32,7 @@ export default async function RevisarPage() {
         tema_nome: fc.temas?.nome ?? fc.tema_id,
         pergunta: fc.pergunta ?? "",
         resposta_html: fc.resposta_html ?? "",
+        anotacao: r.anotacao ?? null,
       };
     })
     .filter((c): c is NonNullable<typeof c> => c !== null);

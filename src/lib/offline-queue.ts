@@ -6,6 +6,7 @@ export type RevisaoPendente = {
   temaId: string;
   flashcardId: string;
   acertou: boolean;
+  anotacao?: string | null;
   ts: number;
 };
 
