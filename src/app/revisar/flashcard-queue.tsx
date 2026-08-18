@@ -119,7 +119,10 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
 
   function avaliar(acertou: boolean) {
     const anotacao = nota || null;
-    if (!acertou || anotacao) {
+    // só entra na compilação pra IA quando marca "Errei" — uma anotação
+    // num card que você acertou é só o raciocínio que já bateu, não precisa
+    // de ajuda da IA nisso
+    if (!acertou) {
       setRevisao((r) => [
         ...r,
         {
@@ -127,7 +130,6 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           pergunta: card.pergunta,
           respostaHtml: card.resposta_html,
           anotacao,
-          acertou,
         },
       ]);
     }
@@ -182,6 +184,29 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           />
         )}
       </div>
+      <div>
+        <button
+          onClick={() => setNotaAberta((v) => !v)}
+          className="text-xs text-neutral-500 hover:text-neutral-200"
+        >
+          📝 {notaAberta ? "Esconder anotação" : nota ? "Ver anotação" : "Anotar meu raciocínio"}
+        </button>
+        {notaAberta && (
+          <textarea
+            value={anotacoes[card.flashcard_id] ?? ""}
+            onChange={(e) =>
+              setAnotacoes((prev) => ({ ...prev, [card.flashcard_id]: e.target.value }))
+            }
+            placeholder={
+              virado
+                ? "Raciocínio, dúvida, pegadinha que te confundiu..."
+                : "Escreva o que você acha que é a resposta antes de virar, pra comparar depois..."
+            }
+            rows={2}
+            className="mt-2 w-full rounded border border-neutral-700 bg-neutral-950 p-2 text-sm text-neutral-100 placeholder:text-neutral-500"
+          />
+        )}
+      </div>
       {!virado ? (
         <button
           onClick={() => setVirado(true)}
@@ -190,42 +215,21 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           Mostrar resposta
         </button>
       ) : (
-        <div className="space-y-3">
-          <div>
-            <button
-              onClick={() => setNotaAberta((v) => !v)}
-              className="text-xs text-neutral-500 hover:text-neutral-200"
-            >
-              📝 {notaAberta ? "Esconder anotação" : nota ? "Ver anotação" : "Anotar"}
-            </button>
-            {notaAberta && (
-              <textarea
-                value={anotacoes[card.flashcard_id] ?? ""}
-                onChange={(e) =>
-                  setAnotacoes((prev) => ({ ...prev, [card.flashcard_id]: e.target.value }))
-                }
-                placeholder="Raciocínio, dúvida, pegadinha que te confundiu..."
-                rows={2}
-                className="mt-2 w-full rounded border border-neutral-700 bg-neutral-950 p-2 text-sm text-neutral-100 placeholder:text-neutral-500"
-              />
-            )}
-          </div>
-          <div className="flex gap-2">
-            <button
-              disabled={pending}
-              onClick={() => avaliar(false)}
-              className="flex-1 rounded-full bg-[#E2574C1f] px-4 py-2 text-sm font-medium text-[#ef8880] hover:bg-[#E2574C33] disabled:opacity-50"
-            >
-              Errei
-            </button>
-            <button
-              disabled={pending}
-              onClick={() => avaliar(true)}
-              className="flex-1 rounded-full bg-[#5E9E6F1f] px-4 py-2 text-sm font-medium text-[#8ec49c] hover:bg-[#5E9E6F33] disabled:opacity-50"
-            >
-              Acertei
-            </button>
-          </div>
+        <div className="flex gap-2">
+          <button
+            disabled={pending}
+            onClick={() => avaliar(false)}
+            className="flex-1 rounded-full bg-[#E2574C1f] px-4 py-2 text-sm font-medium text-[#ef8880] hover:bg-[#E2574C33] disabled:opacity-50"
+          >
+            Errei
+          </button>
+          <button
+            disabled={pending}
+            onClick={() => avaliar(true)}
+            className="flex-1 rounded-full bg-[#5E9E6F1f] px-4 py-2 text-sm font-medium text-[#8ec49c] hover:bg-[#5E9E6F33] disabled:opacity-50"
+          >
+            Acertei
+          </button>
         </div>
       )}
     </div>

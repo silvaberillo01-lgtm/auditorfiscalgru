@@ -7,7 +7,6 @@ export type ItemRevisaoFlashcard = {
   pergunta: string;
   respostaHtml: string;
   anotacao: string | null;
-  acertou: boolean;
 };
 
 function stripHtml(html: string) {
@@ -19,16 +18,15 @@ function blocoParaIA(itens: ItemRevisaoFlashcard[]) {
     const linhas = [
       `### ${e.pergunta} — ${e.temaNome}`,
       `Resposta certa: ${stripHtml(e.respostaHtml)}`,
-      `Resultado: ${e.acertou ? "acertei, mas quero aprofundar" : "errei"}`,
     ];
-    if (e.anotacao) linhas.push(`Minha anotação: ${e.anotacao}`);
+    if (e.anotacao) linhas.push(`Meu raciocínio antes de ver a resposta: ${e.anotacao}`);
     return linhas.join("\n");
   });
 
-  const instrucoes = `Sou leigo nesses temas — estou revisando flashcards de repetição espaçada pra um concurso. Alguns eu errei, outros anotei alguma coisa mesmo acertando porque quero entender melhor. Pra cada flashcard abaixo:
+  const instrucoes = `Sou leigo nesses temas — errei os flashcards abaixo revisando pra um concurso (repetição espaçada). Pra cada um:
 
-1. Se eu errei, explique a resposta certa nos meus termos, sem jargão sem explicar antes, e me ajude a entender por que eu errei.
-2. Se eu escrevi uma anotação, comente ela: diga se meu raciocínio estava certo, incompleto ou só decorado sem entender, e complete o que faltar.
+1. Explique a resposta certa nos meus termos, sem jargão sem explicar antes.
+2. Se eu escrevi meu raciocínio antes de ver a resposta, diga se ele estava certo, incompleto ou errado, e por quê — isso é o mais importante, quero entender onde exatamente meu raciocínio falhou.
 3. Se esse tema é algo que eu erro com frequência, aponte um jeito diferente de fixar (analogia, mnemônico, o que for) já que o jeito atual não está funcionando.
 4. Termine com uma pergunta rápida pra eu testar se realmente entendi, sem me dar a resposta.
 
@@ -48,10 +46,11 @@ export default function CopiarRevisaoFlashcards({ itens }: { itens: ItemRevisaoF
       <div className="flex items-center justify-between gap-2">
         <div>
           <p className="text-sm font-medium text-neutral-100">
-            🧠 Pra revisar ({itens.length})
+            🧠 Erros pra aprofundar ({itens.length})
           </p>
           <p className="text-xs text-neutral-500">
-            Cards que você errou ou anotou algo nesta sessão — pronto pra colar numa IA.
+            Cards que você errou nesta sessão — com seu raciocínio (se anotou), pronto pra colar
+            numa IA.
           </p>
         </div>
         <button
@@ -77,13 +76,8 @@ export default function CopiarRevisaoFlashcards({ itens }: { itens: ItemRevisaoF
         <ul className="space-y-2 pt-1 border-t border-[#E2574C33]">
           {itens.map((e, i) => (
             <li key={i} className="text-sm text-neutral-300">
-              <p className="font-medium text-neutral-200">
-                {e.pergunta}{" "}
-                <span className={e.acertou ? "text-[#8ec49c]" : "text-[#ef8880]"}>
-                  ({e.acertou ? "acertou" : "errou"})
-                </span>
-              </p>
-              {e.anotacao && <p className="mt-1 text-neutral-400">Sua anotação: {e.anotacao}</p>}
+              <p className="font-medium text-neutral-200">{e.pergunta}</p>
+              {e.anotacao && <p className="mt-1 text-neutral-400">Seu raciocínio: {e.anotacao}</p>}
             </li>
           ))}
         </ul>
