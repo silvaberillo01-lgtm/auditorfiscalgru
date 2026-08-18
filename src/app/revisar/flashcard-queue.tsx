@@ -4,7 +4,11 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { revisarFlashcardAction } from "@/app/actions";
 import { enfileirar, lerFila, limparFila } from "@/lib/offline-queue";
+import { promptFlashcards } from "@/lib/flashcard-prompt";
 import Toast, { type ToastInfo } from "@/components/toast";
+import CopiarRevisaoFlashcards, {
+  type ItemRevisaoFlashcard,
+} from "./copiar-revisao-flashcards";
 
 type Card = {
   flashcard_id: string;
@@ -12,6 +16,7 @@ type Card = {
   tema_nome: string;
   pergunta: string;
   resposta_html: string;
+  anotacao: string | null;
 };
 
 async function sincronizarFila() {
@@ -23,6 +28,7 @@ async function sincronizarFila() {
         temaId: revisao.temaId,
         flashcardId: revisao.flashcardId,
         acertou: revisao.acertou,
+        anotacao: revisao.anotacao,
       });
     } catch {
       return; // ainda sem conexão de verdade — tenta de novo na próxima
@@ -47,9 +53,19 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
   );
   const [indice, setIndice] = useState(0);
   const [virado, setVirado] = useState(false);
+  const [copiado, setCopiado] = useState(false);
   const [offline, setOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
   const [toast, setToast] = useState<ToastInfo>(null);
   const [pending, startTransition] = useTransition();
+  const [anotacoes, setAnotacoes] = useState<Record<string, string>>(() => {
+    const inicial: Record<string, string> = {};
+    for (const c of cardsIniciais) {
+      if (c.anotacao) inicial[c.flashcard_id] = c.anotacao;
+    }
+    return inicial;
+  });
+  const [notaAberta, setNotaAberta] = useState(false);
+  const [revisao, setRevisao] = useState<ItemRevisaoFlashcard[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -94,14 +110,31 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
         <div className="rounded-2xl border border-[#5E9E6F33] bg-[#5E9E6F14] p-4 text-sm text-[#8ec49c]">
           Revisões de hoje concluídas!
         </div>
+        <CopiarRevisaoFlashcards itens={revisao} />
         <Toast info={toast} onDone={() => setToast(null)} />
       </>
     );
   }
 
   const card = cards[indice];
+  const nota = (anotacoes[card.flashcard_id] ?? "").trim();
 
   function avaliar(acertou: boolean) {
+    const anotacao = nota || null;
+    // só entra na compilação pra IA quando marca "Errei" — uma anotação
+    // num card que você acertou é só o raciocínio que já bateu, não precisa
+    // de ajuda da IA nisso
+    if (!acertou) {
+      setRevisao((r) => [
+        ...r,
+        {
+          temaNome: card.tema_nome,
+          pergunta: card.pergunta,
+          respostaHtml: card.resposta_html,
+          anotacao,
+        },
+      ]);
+    }
     startTransition(async () => {
       try {
         if (offline) throw new Error("offline");
@@ -109,6 +142,7 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           temaId: card.tema_id,
           flashcardId: card.flashcard_id,
           acertou,
+          anotacao,
         });
         if (resultado) setToast(resultado);
         router.refresh();
@@ -117,10 +151,13 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           temaId: card.tema_id,
           flashcardId: card.flashcard_id,
           acertou,
+          anotacao,
           ts: Date.now(),
         });
       }
       setVirado(false);
+      setNotaAberta(false);
+      setCopiado(false);
       setIndice((i) => i + 1);
     });
   }
@@ -150,6 +187,29 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           />
         )}
       </div>
+      <div>
+        <button
+          onClick={() => setNotaAberta((v) => !v)}
+          className="text-xs text-neutral-500 hover:text-neutral-200"
+        >
+          📝 {notaAberta ? "Esconder anotação" : nota ? "Ver anotação" : "Anotar meu raciocínio"}
+        </button>
+        {notaAberta && (
+          <textarea
+            value={anotacoes[card.flashcard_id] ?? ""}
+            onChange={(e) =>
+              setAnotacoes((prev) => ({ ...prev, [card.flashcard_id]: e.target.value }))
+            }
+            placeholder={
+              virado
+                ? "Raciocínio, dúvida, pegadinha que te confundiu..."
+                : "Escreva o que você acha que é a resposta antes de virar, pra comparar depois..."
+            }
+            rows={2}
+            className="mt-2 w-full rounded border border-neutral-700 bg-neutral-950 p-2 text-sm text-neutral-100 placeholder:text-neutral-500"
+          />
+        )}
+      </div>
       {!virado ? (
         <button
           onClick={() => setVirado(true)}
@@ -158,20 +218,36 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           Mostrar resposta
         </button>
       ) : (
-        <div className="flex gap-2">
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <button
+              disabled={pending}
+              onClick={() => avaliar(false)}
+              className="flex-1 rounded-full bg-[#E2574C1f] px-4 py-2 text-sm font-medium text-[#ef8880] hover:bg-[#E2574C33] disabled:opacity-50"
+            >
+              Errei
+            </button>
+            <button
+              disabled={pending}
+              onClick={() => avaliar(true)}
+              className="flex-1 rounded-full bg-[#5E9E6F1f] px-4 py-2 text-sm font-medium text-[#8ec49c] hover:bg-[#5E9E6F33] disabled:opacity-50"
+            >
+              Acertei
+            </button>
+          </div>
           <button
-            disabled={pending}
-            onClick={() => avaliar(false)}
-            className="flex-1 rounded-full bg-[#E2574C1f] px-4 py-2 text-sm font-medium text-[#ef8880] hover:bg-[#E2574C33] disabled:opacity-50"
+            onClick={async () => {
+              await navigator.clipboard.writeText(
+                promptFlashcards([
+                  { tema_nome: card.tema_nome, pergunta: card.pergunta, resposta_html: card.resposta_html },
+                ])
+              );
+              setCopiado(true);
+              setTimeout(() => setCopiado(false), 1500);
+            }}
+            className="w-full rounded-full bg-[#4E8FD91f] px-4 py-2 text-sm font-medium text-[#7db0ea] hover:bg-[#4E8FD933]"
           >
-            Errei
-          </button>
-          <button
-            disabled={pending}
-            onClick={() => avaliar(true)}
-            className="flex-1 rounded-full bg-[#5E9E6F1f] px-4 py-2 text-sm font-medium text-[#8ec49c] hover:bg-[#5E9E6F33] disabled:opacity-50"
-          >
-            Acertei
+            {copiado ? "Copiado! Cole numa IA 🧠" : "🧠 Não entendi — copiar pra IA"}
           </button>
         </div>
       )}

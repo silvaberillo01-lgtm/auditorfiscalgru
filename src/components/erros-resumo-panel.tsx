@@ -45,7 +45,8 @@ export default function ErrosResumoPanel({ temaNome, erros }: { temaNome: string
             🧠 Erros pra aprofundar ({erros.length})
           </p>
           <p className="text-xs text-neutral-500">
-            Copie e cole numa IA pra debater e revisar os pontos que você errou.
+            Só as questões que você ainda está errando — refez e acertou, sai da lista. Copie
+            e cole numa IA pra debater os pontos.
           </p>
         </div>
         <button
