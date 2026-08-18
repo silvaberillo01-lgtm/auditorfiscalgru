@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { revisarFlashcardAction } from "@/app/actions";
 import { enfileirar, lerFila, limparFila } from "@/lib/offline-queue";
+import { promptFlashcards } from "@/lib/flashcard-prompt";
 import Toast, { type ToastInfo } from "@/components/toast";
 import CopiarRevisaoFlashcards, {
   type ItemRevisaoFlashcard,
@@ -52,6 +53,7 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
   );
   const [indice, setIndice] = useState(0);
   const [virado, setVirado] = useState(false);
+  const [copiado, setCopiado] = useState(false);
   const [offline, setOffline] = useState(() => typeof navigator !== "undefined" && !navigator.onLine);
   const [toast, setToast] = useState<ToastInfo>(null);
   const [pending, startTransition] = useTransition();
@@ -155,6 +157,7 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
       }
       setVirado(false);
       setNotaAberta(false);
+      setCopiado(false);
       setIndice((i) => i + 1);
     });
   }
@@ -215,20 +218,36 @@ export default function FlashcardQueue({ cards: cardsIniciais }: { cards: Card[]
           Mostrar resposta
         </button>
       ) : (
-        <div className="flex gap-2">
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <button
+              disabled={pending}
+              onClick={() => avaliar(false)}
+              className="flex-1 rounded-full bg-[#E2574C1f] px-4 py-2 text-sm font-medium text-[#ef8880] hover:bg-[#E2574C33] disabled:opacity-50"
+            >
+              Errei
+            </button>
+            <button
+              disabled={pending}
+              onClick={() => avaliar(true)}
+              className="flex-1 rounded-full bg-[#5E9E6F1f] px-4 py-2 text-sm font-medium text-[#8ec49c] hover:bg-[#5E9E6F33] disabled:opacity-50"
+            >
+              Acertei
+            </button>
+          </div>
           <button
-            disabled={pending}
-            onClick={() => avaliar(false)}
-            className="flex-1 rounded-full bg-[#E2574C1f] px-4 py-2 text-sm font-medium text-[#ef8880] hover:bg-[#E2574C33] disabled:opacity-50"
+            onClick={async () => {
+              await navigator.clipboard.writeText(
+                promptFlashcards([
+                  { tema_nome: card.tema_nome, pergunta: card.pergunta, resposta_html: card.resposta_html },
+                ])
+              );
+              setCopiado(true);
+              setTimeout(() => setCopiado(false), 1500);
+            }}
+            className="w-full rounded-full bg-[#4E8FD91f] px-4 py-2 text-sm font-medium text-[#7db0ea] hover:bg-[#4E8FD933]"
           >
-            Errei
-          </button>
-          <button
-            disabled={pending}
-            onClick={() => avaliar(true)}
-            className="flex-1 rounded-full bg-[#5E9E6F1f] px-4 py-2 text-sm font-medium text-[#8ec49c] hover:bg-[#5E9E6F33] disabled:opacity-50"
-          >
-            Acertei
+            {copiado ? "Copiado! Cole numa IA 🧠" : "🧠 Não entendi — copiar pra IA"}
           </button>
         </div>
       )}

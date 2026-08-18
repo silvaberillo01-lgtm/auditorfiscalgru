@@ -196,7 +196,11 @@ const RESUMO_SPLIT: Record<string, { palavraChave: RegExp; tema: string }[]> = {
 
 const RESUMO_TEMA_UNICO: Record<string, string> = {
   trib: "direito-tributario",
+  ctm: "legislacao-tributaria-municipal",
   muni1: "legislacao-tributaria-municipal",
+  "pat-decreto": "processo-administrativo-tributario",
+  taxas: "tributos-municipais",
+  cosip: "tributos-municipais",
   reforma: "reforma-tributaria",
 };
 

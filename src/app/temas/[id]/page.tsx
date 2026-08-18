@@ -16,9 +16,10 @@ import { FASE_BADGE } from "@/lib/fase-ui";
 import type { Resumo } from "@/lib/types";
 import NotesPanel from "@/components/notes-panel";
 import ErrosResumoPanel from "@/components/erros-resumo-panel";
+import CopiarResumoButton from "@/components/copiar-resumo-button";
 import DeadlineBadge from "@/components/deadline-badge";
 import PhaseStepper from "@/components/phase-stepper";
-import { verificarConclusaoTeste } from "@/lib/engine";
+import { verificarConclusaoTeste, verificarConclusaoCorrecao } from "@/lib/engine";
 import OpenTracker from "./open-tracker";
 import ResumoActions from "./resumo-actions";
 import EsquecerButton from "./esquecer-button";
@@ -35,6 +36,8 @@ export default async function TemaPage({
   // reavalia se as reais já foram todas respondidas (cobre quem ficou
   // preso em "testando" antes das variações virarem opcionais)
   await verificarConclusaoTeste(user.id, id);
+  // e destrava quem ficou em "corrigindo" sem nenhum erro a corrigir
+  await verificarConclusaoCorrecao(user.id, id);
 
   const [tema, progresso, { data: resumos }, anotacoes, erros, semana, errosPendentes] = await Promise.all([
     getTema(id),
@@ -99,7 +102,10 @@ export default async function TemaPage({
 
       {(resumos as Resumo[] | null)?.map((r) => (
         <article key={r.id} className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4">
-          {r.titulo && <h2 className="font-medium mb-2 text-neutral-100">{r.titulo}</h2>}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            {r.titulo && <h2 className="font-medium text-neutral-100">{r.titulo}</h2>}
+            <CopiarResumoButton temaNome={tema.nome} resumo={r} />
+          </div>
           <div className="prose prose-sm prose-invert max-w-none">
             <ReactMarkdown>{r.conteudo_md ?? ""}</ReactMarkdown>
           </div>

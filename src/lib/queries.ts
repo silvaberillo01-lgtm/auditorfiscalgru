@@ -11,7 +11,7 @@ import type {
   TemaProgresso,
 } from "@/lib/types";
 import { FASE_ORDEM } from "@/lib/fase-ui";
-import { statusSemana, type StatusPrazo } from "@/lib/prazo";
+import { statusSemana, hojeISO, somarDias, type StatusPrazo } from "@/lib/prazo";
 
 /** Dentre uma lista de temas, qual está na fase mais atrasada (mais perto de nao_iniciado). */
 function temaMaisAtrasado(temaIds: string[], progressoMap: Map<string, Fase>): string {
@@ -81,10 +81,6 @@ export function fasesLabel(fase: Fase): string {
       dominado: "Dominado",
     } satisfies Record<Fase, string>
   )[fase];
-}
-
-function hojeISO() {
-  return new Date().toISOString().slice(0, 10);
 }
 
 /** Revisões atrasadas (flashcards com proxima_revisao <= hoje), agrupadas por tema. */
@@ -199,6 +195,34 @@ export async function getPlanoSemanas(userId: string): Promise<SemanaComTemas[]>
   });
 }
 
+/** Fases que ainda exigem trabalho ativo (não é só esperar a revisão espaçada). */
+const FASES_ATIVAS: Fase[] = ["nao_iniciado", "entendendo", "testando", "corrigindo"];
+
+export type ProximoTemaEstudo = {
+  tema: { id: string; nome: string };
+  fase: Fase;
+  semana: SemanaComTemas;
+};
+
+/**
+ * Próximo tema que precisa de estudo ativo (entender/testar/corrigir), na
+ * ordem do plano. Puxa o primeiro tema pendente mesmo que seja de uma semana
+ * futura — assim quem adiantou a semana atual não fica sem o que fazer.
+ */
+export async function getProximoTemaParaEstudar(
+  userId: string,
+  semanas?: SemanaComTemas[]
+): Promise<ProximoTemaEstudo | null> {
+  const lista = semanas ?? (await getPlanoSemanas(userId));
+  for (const semana of lista) {
+    const tema = semana.temas.find((t) => FASES_ATIVAS.includes(t.fase));
+    if (tema) {
+      return { tema: { id: tema.id, nome: tema.nome }, fase: tema.fase, semana };
+    }
+  }
+  return null;
+}
+
 /** Semana do plano que contém um tema específico (primeira ocorrência). */
 export async function getSemanaDoTema(
   userId: string,
@@ -219,15 +243,24 @@ export async function getSemanaDoTema(
 export async function getProgressoProva(userId: string) {
   const supabase = await createClient();
   const [{ data: temas }, { data: progressos }] = await Promise.all([
-    supabase.from("temas").select("id, peso"),
+    supabase.from("temas").select("id, peso, n_questoes_prova"),
     supabase.from("tema_progresso").select("tema_id, fase").eq("user_id", userId),
   ]);
 
   const faseMap = new Map((progressos ?? []).map((p) => [p.tema_id, p.fase as Fase]));
+  // Régua de peso de cada tema na prova. n_questoes_prova ainda é placeholder
+  // (0) no seed — sem fallback, o progresso ficava travado em 0% pra sempre.
+  // A régua é escolhida uma vez pro conjunto inteiro (nunca mistura escalas):
+  // peso*questões se houver questões cadastradas; senão só o peso; senão 1.
+  const lista = temas ?? [];
+  const temQuestoes = lista.some((t) => (t.n_questoes_prova ?? 0) > 0);
+  const temPeso = lista.some((t) => (t.peso ?? 0) > 0);
+  const pesoDoTema = (t: { peso: number | null; n_questoes_prova: number | null }) =>
+    temQuestoes ? (t.peso ?? 0) * (t.n_questoes_prova ?? 0) : temPeso ? (t.peso ?? 0) : 1;
   let total = 0;
   let coberto = 0;
-  for (const t of temas ?? []) {
-    const peso = t.peso ?? 0;
+  for (const t of lista) {
+    const peso = pesoDoTema(t);
     total += peso;
     const fase = faseMap.get(t.id);
     if (fase === "dominado" || fase === "espacando") coberto += peso;
@@ -257,14 +290,13 @@ export async function getStreak(userId: string): Promise<number> {
   if (!data || data.length === 0) return 0;
 
   const datas = new Set(data.map((d) => d.data));
-  const cursor = new Date();
   // se hoje ainda não tem atividade, começa a contar a partir de ontem
-  if (!datas.has(hojeISO())) cursor.setDate(cursor.getDate() - 1);
+  let cursorISO = datas.has(hojeISO()) ? hojeISO() : somarDias(hojeISO(), -1);
 
   let streak = 0;
-  while (datas.has(cursor.toISOString().slice(0, 10))) {
+  while (datas.has(cursorISO)) {
     streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
+    cursorISO = somarDias(cursorISO, -1);
   }
   return streak;
 }
@@ -438,32 +470,66 @@ export async function getRespostasDoTema(userId: string, temaId: string) {
   return ultimaPorQuestao;
 }
 
-/** Erros já corrigidos (com raciocínio preenchido) do tema, pra copiar pra uma IA depois. */
+/**
+ * Erros pra aprofundar com a IA: só as questões cuja ÚLTIMA resposta ainda é
+ * errada (uma entrada por questão, com o raciocínio corrigido mais recente).
+ * Quem refez a questão e acertou sai da lista — senão o painel manda pra IA
+ * erro antigo já superado.
+ */
 export async function getErrosCorrigidosDoTema(userId: string, temaId: string) {
   const supabase = await createClient();
   const { data: questoes } = await supabase.from("questoes").select("id").eq("tema_id", temaId);
   const questaoIds = (questoes ?? []).map((q) => q.id);
   if (questaoIds.length === 0) return [];
 
-  const { data } = await supabase
+  const { data: todas } = await supabase
     .from("respostas")
-    .select("id, resposta, raciocinio, respondida_em, questoes(enunciado, gabarito, explicacao)")
+    .select("questao_id, correta, respondida_em")
     .eq("user_id", userId)
     .in("questao_id", questaoIds)
+    .order("respondida_em", { ascending: false });
+
+  const aindaErradas = new Set<string>();
+  const vistas = new Set<string>();
+  for (const r of todas ?? []) {
+    if (vistas.has(r.questao_id)) continue;
+    vistas.add(r.questao_id);
+    if (!r.correta) aindaErradas.add(r.questao_id);
+  }
+  if (aindaErradas.size === 0) return [];
+
+  const { data } = await supabase
+    .from("respostas")
+    .select("id, questao_id, resposta, raciocinio, respondida_em, questoes(enunciado, gabarito, explicacao)")
+    .eq("user_id", userId)
+    .in("questao_id", [...aindaErradas])
     .eq("correta", false)
     .not("raciocinio", "is", null)
     .order("respondida_em", { ascending: false });
 
-  return (data ?? []).map((r) => ({
-    id: r.id as string,
-    resposta: r.resposta as string | null,
-    raciocinio: r.raciocinio as string | null,
-    questao: r.questoes as unknown as {
-      enunciado: string;
-      gabarito: string | null;
-      explicacao: string | null;
-    } | null,
-  }));
+  const questaoJaListada = new Set<string>();
+  const erros: {
+    id: string;
+    resposta: string | null;
+    raciocinio: string | null;
+    questao: { enunciado: string; gabarito: string | null; explicacao: string | null } | null;
+  }[] = [];
+  for (const r of data ?? []) {
+    const qid = r.questao_id as string;
+    if (questaoJaListada.has(qid)) continue;
+    questaoJaListada.add(qid);
+    erros.push({
+      id: r.id as string,
+      resposta: r.resposta as string | null,
+      raciocinio: r.raciocinio as string | null,
+      questao: r.questoes as unknown as {
+        enunciado: string;
+        gabarito: string | null;
+        explicacao: string | null;
+      } | null,
+    });
+  }
+  return erros;
 }
 
 /** Quantos erros já respondidos ainda não têm raciocínio escrito (pra mostrar o link de corrigir). */
@@ -482,4 +548,94 @@ export async function getErrosPendentesCount(userId: string, temaId: string): Pr
     .is("raciocinio", null);
 
   return count ?? 0;
+}
+
+/** Atividade dos últimos `dias` dias (incluindo hoje), com zeros preenchidos — pro gráfico de barras. */
+export async function getAtividadeRecente(userId: string, dias = 14) {
+  const supabase = await createClient();
+  const inicioISO = somarDias(hojeISO(), -(dias - 1));
+
+  const { data } = await supabase
+    .from("atividade_diaria")
+    .select("data, acoes")
+    .eq("user_id", userId)
+    .gte("data", inicioISO)
+    .order("data", { ascending: true });
+
+  const porData = new Map((data ?? []).map((d) => [d.data as string, (d.acoes as number) ?? 0]));
+  const resultado: { data: string; acoes: number }[] = [];
+  let cursorISO = inicioISO;
+  for (let i = 0; i < dias; i++) {
+    resultado.push({ data: cursorISO, acoes: porData.get(cursorISO) ?? 0 });
+    cursorISO = somarDias(cursorISO, 1);
+  }
+  return resultado;
+}
+
+/** Números da fila de repetição espaçada: quantos cards já entraram, quantos vencem hoje, quantos estão errados agora. */
+export async function getEstatisticasFlashcards(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("flashcard_reviews")
+    .select("proxima_revisao, erros, streak_acertos, ciclos_completos")
+    .eq("user_id", userId);
+
+  const hoje = hojeISO();
+  const lista = data ?? [];
+  return {
+    totalNaFila: lista.length,
+    vencendoHoje: lista.filter((r) => (r.proxima_revisao as string) <= hoje).length,
+    // mesmo critério do painel de aprofundar: erradas na última passada, não
+    // o acumulado histórico (que nunca diminuía, mesmo reacertando o card)
+    comErro: lista.filter(
+      (r) => ((r.erros as number) ?? 0) > 0 && ((r.streak_acertos as number) ?? 0) === 0
+    ).length,
+    dominados: lista.filter((r) => ((r.ciclos_completos as number) ?? 0) >= 2).length,
+  };
+}
+
+export type FlashcardErrado = {
+  flashcard_id: string;
+  tema_nome: string;
+  pergunta: string;
+  resposta_html: string;
+  erros: number;
+};
+
+/**
+ * Flashcards a aprofundar com a IA: só os que você errou na ÚLTIMA passada
+ * (mais errados primeiro). `erros` é um contador acumulado que nunca zera —
+ * sozinho, ele mantinha na lista card que você já reacertou depois. O filtro
+ * de verdade é `streak_acertos = 0`: o streak volta a zero a cada erro e
+ * cresce a cada acerto, então zero com `erros > 0` significa exatamente
+ * "errou e ainda não acertou desde então".
+ */
+export async function getFlashcardsMaisErrados(userId: string): Promise<FlashcardErrado[]> {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("flashcard_reviews")
+    .select("flashcard_id, erros, flashcards(pergunta, resposta_html, temas(nome))")
+    .eq("user_id", userId)
+    .gt("erros", 0)
+    .eq("streak_acertos", 0)
+    .order("erros", { ascending: false });
+
+  return (data ?? [])
+    .map((r) => {
+      const fc = r.flashcards as unknown as {
+        pergunta: string | null;
+        resposta_html: string | null;
+        temas: { nome: string } | null;
+      } | null;
+      if (!fc) return null;
+      return {
+        flashcard_id: r.flashcard_id as string,
+        tema_nome: fc.temas?.nome ?? "",
+        pergunta: fc.pergunta ?? "",
+        resposta_html: fc.resposta_html ?? "",
+        erros: (r.erros as number) ?? 0,
+      };
+    })
+    .filter((c): c is FlashcardErrado => c !== null);
 }

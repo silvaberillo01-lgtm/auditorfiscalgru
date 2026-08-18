@@ -6,7 +6,7 @@ function texto(status: StatusPrazo, diasRestantes: number): string {
     case "atrasada":
       return `⚠️ atrasado há ${Math.abs(diasRestantes)}d`;
     case "concluida":
-      return "✅ concluído no prazo";
+      return diasRestantes > 0 ? "✅ concluído (adiantado)" : "✅ concluído no prazo";
     case "futura":
       return diasRestantes > 0 ? `🗓️ começa em ${diasRestantes}d` : "🗓️ começa em breve";
     case "atual":

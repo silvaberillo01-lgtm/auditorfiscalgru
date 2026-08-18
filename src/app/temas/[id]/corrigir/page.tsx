@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { requireAprovado } from "@/lib/auth";
 import { getTema } from "@/lib/queries";
+import { verificarConclusaoCorrecao } from "@/lib/engine";
 import CopiarErrosBrutos from "@/components/copiar-erros-brutos";
 import CorrigirForm from "./corrigir-form";
 
@@ -14,6 +16,10 @@ export default async function CorrigirPage({
   const { user } = await requireAprovado();
   const tema = await getTema(id);
   if (!tema) notFound();
+
+  // se não sobrou erro pendente, libera o tema pro espaçamento em vez de
+  // deixá-lo preso em "corrigindo"
+  await verificarConclusaoCorrecao(user.id, id);
 
   const supabase = await createClient();
   const { data: questoes } = await supabase.from("questoes").select("id").eq("tema_id", id);
@@ -54,7 +60,14 @@ export default async function CorrigirPage({
       </div>
 
       {questoesInfo.length === 0 && (
-        <p className="text-sm text-neutral-500">Nenhum erro pendente de correção.</p>
+        <div className="rounded-2xl border border-[#5E9E6F33] bg-[#5E9E6F14] p-4 text-sm text-[#8ec49c]">
+          Nenhum erro a corrigir aqui — tema liberado para a fase de{" "}
+          <span className="font-semibold">espaçar</span>. Os flashcards entram na fila de revisão.{" "}
+          <Link href="/revisar" className="underline">
+            Ir para revisão
+          </Link>
+          .
+        </div>
       )}
 
       {questoesInfo.length > 0 && (

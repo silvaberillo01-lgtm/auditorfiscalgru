@@ -61,6 +61,7 @@ export type FlashcardReview = {
   streak_acertos: number;
   ciclos_completos: number;
   anotacao: string | null;
+  erros: number;
 };
 
 export type Resposta = {
