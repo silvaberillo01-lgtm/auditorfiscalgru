@@ -174,11 +174,20 @@ export async function verificarConclusaoTeste(userId: string, temaId: string): P
   const progresso = await garantirProgresso(supabase, userId, temaId);
   if (progresso.fase !== "testando") return false;
 
-  const { data: questoes } = await supabase
+  const { data: questoesReais } = await supabase
     .from("questoes")
     .select("id")
     .eq("tema_id", temaId)
     .eq("origem", "real");
+
+  // Alguns temas (ex.: TI, Análise de Dados e LGPD) só têm questões
+  // "variação" no material original — sem isso, o tema nunca teria como sair
+  // de "testando" (0 questões reais = nunca conclui o teste).
+  const questoes =
+    questoesReais && questoesReais.length > 0
+      ? questoesReais
+      : (await supabase.from("questoes").select("id").eq("tema_id", temaId).eq("origem", "variacao"))
+          .data;
   const totalQuestoes = questoes?.length ?? 0;
   if (totalQuestoes === 0) return false;
 
