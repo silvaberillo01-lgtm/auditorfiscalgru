@@ -12,9 +12,13 @@ import CopiarErrosSimulado, { type ItemRevisaoSimulado } from "./copiar-erros-si
 
 /**
  * Modo prova: marca as alternativas sem feedback imediato (dá pra trocar de
- * resposta à vontade) e só revela acertos/erros + explicações quando o botão
- * "Conferir gabarito" é acionado. Cada questão tem espaço de anotação — bom
- * pra registrar a discussão em dupla antes de conferir.
+ * resposta à vontade) até clicar em "Conferir gabarito". Esse clique é seguro
+ * a qualquer momento, mesmo com o simulado pela metade: só revela acertos,
+ * erros e explicações das questões JÁ respondidas — as em branco continuam
+ * sem gabarito e sem contar no placar, dá pra voltar e respondê-las depois
+ * (e a resposta nova já mostra feedback na hora, sem precisar clicar de novo).
+ * Cada questão tem espaço de anotação — bom pra registrar dúvidas antes de
+ * conferir ou pra levar pra uma IA revisar depois.
  */
 export default function SimuladoRunner({
   simulado,
@@ -53,24 +57,29 @@ export default function SimuladoRunner({
   const resultado = useMemo(() => {
     if (!mostrarGabarito) return null;
     let acertos = 0;
+    let totalRespondidas = 0;
     const porTema = new Map<string, { nome: string; acertos: number; total: number }>();
     const itensRevisao: ItemRevisaoSimulado[] = [];
     for (const q of questoes) {
+      const minhaResposta = respostas[q.id] ?? null;
+      // questão ainda não respondida: não conta no placar nem revela nada dela —
+      // é o que permite conferir o que já foi feito sem estragar o resto da prova.
+      if (!minhaResposta) continue;
+
       const temaId = q.tema_id ?? "outros";
       const nomeTema = temaNomes[temaId] ?? temaId;
       const atual = porTema.get(temaId) ?? { nome: nomeTema, acertos: 0, total: 0 };
       atual.total += 1;
-      const minhaResposta = respostas[q.id] ?? null;
+      totalRespondidas += 1;
       const anotacao = anotacoes[q.id]?.trim() || null;
-      const acertou = !!minhaResposta && minhaResposta === q.gabarito;
+      const acertou = minhaResposta === q.gabarito;
       if (acertou) {
         acertos += 1;
         atual.acertos += 1;
       }
 
-      // entra na revisão quem errou (respondeu diferente do gabarito) OU tem
-      // anotação — mesmo tendo acertado, ou mesmo sem ter respondido ainda
-      const errou = !!minhaResposta && !acertou;
+      // entra na revisão quem errou (respondeu diferente do gabarito) OU tem anotação
+      const errou = !acertou;
       if (errou || anotacao) {
         itensRevisao.push({
           numero: q.numero,
@@ -86,11 +95,13 @@ export default function SimuladoRunner({
       }
       porTema.set(temaId, atual);
     }
-    return { acertos, porTema: [...porTema.values()], itensRevisao };
+    return { acertos, totalRespondidas, porTema: [...porTema.values()], itensRevisao };
   }, [mostrarGabarito, questoes, respostas, anotacoes, temaNomes]);
 
   function responder(questaoId: string, letra: string) {
-    if (mostrarGabarito) return;
+    // com o gabarito já conferido, só trava quem já tinha resposta salva — uma
+    // questão em branco continua respondível (e mostra feedback na hora).
+    if (mostrarGabarito && respostas[questaoId]) return;
     setRespostas((prev) => ({ ...prev, [questaoId]: letra }));
     startTransition(async () => {
       await responderSimuladoAction({
@@ -133,13 +144,9 @@ export default function SimuladoRunner({
   }
 
   function conferirGabarito() {
-    if (
-      respondidas < total &&
-      !window.confirm(
-        `Ainda faltam ${total - respondidas} questões sem resposta — elas contam como erro. Conferir o gabarito mesmo assim?`
-      )
-    )
-      return;
+    // seguro chamar a qualquer momento, mesmo com questões em branco: elas
+    // simplesmente continuam sem gabarito revelado e sem contar no placar,
+    // dá pra seguir respondendo depois normalmente.
     setMostrarGabarito(true);
     document.getElementById("resultado")?.scrollIntoView({ behavior: "smooth" });
   }
@@ -160,9 +167,13 @@ export default function SimuladoRunner({
             {mostrarGabarito && resultado ? (
               <>
                 <span className="font-semibold text-neutral-100">
-                  {resultado.acertos}/{total}
+                  {resultado.acertos}/{resultado.totalRespondidas}
                 </span>{" "}
-                acertos ({Math.round((resultado.acertos / total) * 100)}%)
+                acertos (
+                {resultado.totalRespondidas > 0
+                  ? Math.round((resultado.acertos / resultado.totalRespondidas) * 100)
+                  : 0}
+                % do que já foi respondido)
               </>
             ) : (
               <>
@@ -182,14 +193,17 @@ export default function SimuladoRunner({
         <div className="flex flex-wrap gap-1.5">
           {questoes.map((q) => {
             const marcada = !!respostas[q.id];
-            const acertou = mostrarGabarito && respostas[q.id] === q.gabarito;
-            const cor = mostrarGabarito
-              ? acertou
-                ? "bg-[#5E9E6F33] text-[#8ec49c] border-[#5E9E6F66]"
-                : "bg-[#E2574C33] text-[#ef8880] border-[#E2574C66]"
-              : marcada
-                ? "bg-neutral-100 text-neutral-900 border-neutral-100"
-                : "bg-neutral-950 text-neutral-500 border-neutral-700";
+            // sem resposta salva, a bolinha fica neutra mesmo com o gabarito já
+            // conferido — não dá pra pintar de "errou" quem nem respondeu ainda.
+            const acertou = mostrarGabarito && marcada && respostas[q.id] === q.gabarito;
+            const cor =
+              mostrarGabarito && marcada
+                ? acertou
+                  ? "bg-[#5E9E6F33] text-[#8ec49c] border-[#5E9E6F66]"
+                  : "bg-[#E2574C33] text-[#ef8880] border-[#E2574C66]"
+                : marcada
+                  ? "bg-neutral-100 text-neutral-900 border-neutral-100"
+                  : "bg-neutral-950 text-neutral-500 border-neutral-700";
             return (
               <a
                 key={q.id}
@@ -210,8 +224,17 @@ export default function SimuladoRunner({
           className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 space-y-3 scroll-mt-4"
         >
           <p className="font-medium text-neutral-100">
-            Resultado: {resultado.acertos}/{total} (
-            {Math.round((resultado.acertos / total) * 100)}%)
+            Resultado do que já foi respondido: {resultado.acertos}/{resultado.totalRespondidas} (
+            {resultado.totalRespondidas > 0
+              ? Math.round((resultado.acertos / resultado.totalRespondidas) * 100)
+              : 0}
+            %)
+            {resultado.totalRespondidas < total && (
+              <span className="ml-2 text-xs font-normal text-neutral-500">
+                — {total - resultado.totalRespondidas} questões ainda em branco, sem gabarito
+                revelado. Pode continuar respondendo normalmente.
+              </span>
+            )}
           </p>
           <ul className="space-y-1 text-sm">
             {resultado.porTema.map((t) => (
@@ -232,9 +255,11 @@ export default function SimuladoRunner({
             ))}
           </ul>
           <div className="border-t border-neutral-800 pt-3">
-            <p className="mb-2 text-xs font-medium text-neutral-400">Gabarito oficial</p>
+            <p className="mb-2 text-xs font-medium text-neutral-400">
+              Gabarito oficial (só do que você já respondeu)
+            </p>
             <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
-              {questoes.map((q) => (
+              {questoes.filter((q) => respostas[q.id]).map((q) => (
                 <span
                   key={q.id}
                   className="rounded border border-neutral-700 bg-neutral-950 px-1.5 py-0.5 text-neutral-300"
@@ -257,6 +282,10 @@ export default function SimuladoRunner({
       <div className="space-y-4">
         {questoes.map((q) => {
           const selecionada = respostas[q.id] ?? null;
+          const jaRespondida = !!selecionada;
+          // só revela/trava questão que já tem resposta salva — uma em branco
+          // continua normal mesmo depois de conferir o gabarito das outras.
+          const revelada = mostrarGabarito && jaRespondida;
           const acertou = selecionada === q.gabarito;
           const temAnotacao = !!(anotacoes[q.id] ?? "").trim();
           const aberta = anotacaoAberta[q.id] ?? temAnotacao;
@@ -291,12 +320,12 @@ export default function SimuladoRunner({
               <div className="space-y-2">
                 {(q.alternativas ?? []).map((alt) => {
                   const isSelecionada = selecionada === alt.letra;
-                  const isGabarito = mostrarGabarito && alt.letra === q.gabarito;
-                  const isErrada = mostrarGabarito && isSelecionada && !isGabarito;
+                  const isGabarito = revelada && alt.letra === q.gabarito;
+                  const isErrada = revelada && isSelecionada && !isGabarito;
                   return (
                     <button
                       key={alt.letra}
-                      disabled={mostrarGabarito}
+                      disabled={revelada}
                       onClick={() => responder(q.id, alt.letra)}
                       className={`block w-full text-left rounded-lg border px-3 py-2 text-sm transition ${
                         isGabarito
@@ -314,7 +343,7 @@ export default function SimuladoRunner({
                 })}
               </div>
 
-              {mostrarGabarito && (
+              {revelada && (
                 <div
                   className={`text-sm rounded-lg p-3 ${
                     acertou
@@ -322,13 +351,7 @@ export default function SimuladoRunner({
                       : "bg-[#E2574C14] text-[#ef8880]"
                   }`}
                 >
-                  <p className="font-medium">
-                    {acertou
-                      ? "Acertou!"
-                      : selecionada
-                        ? `Errou — gabarito: ${q.gabarito}`
-                        : `Em branco — gabarito: ${q.gabarito}`}
-                  </p>
+                  <p className="font-medium">{acertou ? "Acertou!" : `Errou — gabarito: ${q.gabarito}`}</p>
                   {q.explicacao && <p className="mt-1">{q.explicacao}</p>}
                   {q.fonte && <p className="mt-1 text-xs opacity-70">Fonte: {q.fonte}</p>}
                 </div>

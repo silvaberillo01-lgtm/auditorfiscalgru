@@ -237,7 +237,7 @@ const QUESTOES: Questao[] = [
   // RLM — 9 (proporção maior, conforme perfil do usuário)
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "Um produto sofre dois aumentos sucessivos de 10% e 20%. O aumento total acumulado é de:",
     alternativas: [
       { letra: "A", texto: "30%" },
@@ -251,7 +251,7 @@ const QUESTOES: Questao[] = [
   },
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "Um capital de R$ 10.000,00 é aplicado a juros simples de 2% ao mês, por 5 meses. O montante ao final do período é:",
     alternativas: [
       { letra: "A", texto: "R$ 11.000,00" },
@@ -265,7 +265,7 @@ const QUESTOES: Questao[] = [
   },
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "Um capital de R$ 8.000,00 é aplicado a juros compostos de 5% ao mês, por 2 meses. O montante, ao final do período, é:",
     alternativas: [
       { letra: "A", texto: "R$ 8.800,00" },
@@ -279,7 +279,7 @@ const QUESTOES: Questao[] = [
   },
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "Uma taxa de juros compostos de 1% ao mês equivale, aproximadamente, a qual taxa anual (mesmo regime de capitalização)?",
     alternativas: [
       { letra: "A", texto: "12%, pois basta multiplicar a taxa mensal por 12" },
@@ -293,7 +293,7 @@ const QUESTOES: Questao[] = [
   },
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "A negação da proposição 'O processo foi protocolado e o prazo foi cumprido' é:",
     alternativas: [
       { letra: "A", texto: "O processo não foi protocolado e o prazo não foi cumprido." },
@@ -307,7 +307,7 @@ const QUESTOES: Questao[] = [
   },
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "Considere a proposição condicional: 'Se o contribuinte é notificado, então o prazo começa a correr'. Essa proposição é FALSA apenas quando:",
     alternativas: [
       { letra: "A", texto: "O contribuinte não é notificado e o prazo não começa a correr" },
@@ -321,7 +321,7 @@ const QUESTOES: Questao[] = [
   },
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "A negação da proposição 'Todo auditor fiscal aprovou o exame' é:",
     alternativas: [
       { letra: "A", texto: "Nenhum auditor fiscal aprovou o exame." },
@@ -335,7 +335,7 @@ const QUESTOES: Questao[] = [
   },
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "Um item custava R$ 500,00 e sofreu um desconto de 15%, seguido de um novo desconto de 10% sobre o valor já reduzido. O preço final do item é:",
     alternativas: [
       { letra: "A", texto: "R$ 375,00" },
@@ -349,7 +349,7 @@ const QUESTOES: Questao[] = [
   },
   {
     tema_id: "raciocinio-logico-mat-financeira",
-    origem: "real",
+    origem: "variacao",
     enunciado: "A bicondicional 'p se e somente se q' é verdadeira quando:",
     alternativas: [
       { letra: "A", texto: "p e q têm o mesmo valor lógico, ambos verdadeiros ou ambos falsos" },
