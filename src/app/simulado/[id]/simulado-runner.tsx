@@ -12,11 +12,13 @@ import CopiarErrosSimulado, { type ItemRevisaoSimulado } from "./copiar-erros-si
 
 /**
  * Modo prova: marca as alternativas sem feedback imediato (dá pra trocar de
- * resposta à vontade) até clicar em "Conferir gabarito". Esse clique é seguro
- * a qualquer momento, mesmo com o simulado pela metade: só revela acertos,
- * erros e explicações das questões JÁ respondidas — as em branco continuam
- * sem gabarito e sem contar no placar, dá pra voltar e respondê-las depois
- * (e a resposta nova já mostra feedback na hora, sem precisar clicar de novo).
+ * resposta à vontade). "Conferir gabarito" tira uma FOTO das respostas
+ * salvas até aquele clique — só essas ficam reveladas (acerto/erro/
+ * explicação) e travadas; as demais continuam em branco, sem gabarito, sem
+ * contar no placar, e sem feedback mesmo depois de respondidas. Pra revelar
+ * mais, clica em "Conferir gabarito" de novo (o botão nunca some) — assim dá
+ * pra ir checando aos poucos, sem que responder uma questão nova depois de já
+ * ter conferido vire spoiler automático das próprias respostas seguintes.
  * Cada questão tem espaço de anotação — bom pra registrar dúvidas antes de
  * conferir ou pra levar pra uma IA revisar depois.
  */
@@ -47,24 +49,29 @@ export default function SimuladoRunner({
   });
   const [anotacaoAberta, setAnotacaoAberta] = useState<Record<string, boolean>>({});
   const [anotacaoSalva, setAnotacaoSalva] = useState<Record<string, boolean>>({});
-  const [mostrarGabarito, setMostrarGabarito] = useState(false);
+  // "foto" das questões reveladas no último clique em "Conferir gabarito" —
+  // só essas mostram feedback; responder uma nova depois não entra aqui
+  // sozinha, precisa clicar em conferir de novo pra incluí-la.
+  const [reveladas, setReveladas] = useState<Set<string>>(new Set());
   const [pending, startTransition] = useTransition();
   const router = useRouter();
 
   const total = questoes.length;
   const respondidas = questoes.filter((q) => respostas[q.id]).length;
+  const jaConferiuAlgumaVez = reveladas.size > 0;
 
   const resultado = useMemo(() => {
-    if (!mostrarGabarito) return null;
+    if (reveladas.size === 0) return null;
     let acertos = 0;
     let totalRespondidas = 0;
     const porTema = new Map<string, { nome: string; acertos: number; total: number }>();
     const itensRevisao: ItemRevisaoSimulado[] = [];
     for (const q of questoes) {
       const minhaResposta = respostas[q.id] ?? null;
-      // questão ainda não respondida: não conta no placar nem revela nada dela —
-      // é o que permite conferir o que já foi feito sem estragar o resto da prova.
-      if (!minhaResposta) continue;
+      // só entram no placar as questões reveladas na última "foto" — mesmo
+      // que já tenham sido respondidas depois, ficam de fora até o próximo
+      // clique em "Conferir gabarito".
+      if (!minhaResposta || !reveladas.has(q.id)) continue;
 
       const temaId = q.tema_id ?? "outros";
       const nomeTema = temaNomes[temaId] ?? temaId;
@@ -96,12 +103,12 @@ export default function SimuladoRunner({
       porTema.set(temaId, atual);
     }
     return { acertos, totalRespondidas, porTema: [...porTema.values()], itensRevisao };
-  }, [mostrarGabarito, questoes, respostas, anotacoes, temaNomes]);
+  }, [reveladas, questoes, respostas, anotacoes, temaNomes]);
 
   function responder(questaoId: string, letra: string) {
-    // com o gabarito já conferido, só trava quem já tinha resposta salva — uma
-    // questão em branco continua respondível (e mostra feedback na hora).
-    if (mostrarGabarito && respostas[questaoId]) return;
+    // só trava quem já foi revelado (entrou na última "foto" do conferir) —
+    // qualquer outra questão continua respondível normalmente, sem feedback.
+    if (reveladas.has(questaoId)) return;
     setRespostas((prev) => ({ ...prev, [questaoId]: letra }));
     startTransition(async () => {
       await responderSimuladoAction({
@@ -138,16 +145,16 @@ export default function SimuladoRunner({
       await refazerSimuladoAction(simulado.id);
       setRespostas({});
       setAnotacoes({});
-      setMostrarGabarito(false);
+      setReveladas(new Set());
       router.refresh();
     });
   }
 
   function conferirGabarito() {
-    // seguro chamar a qualquer momento, mesmo com questões em branco: elas
-    // simplesmente continuam sem gabarito revelado e sem contar no placar,
-    // dá pra seguir respondendo depois normalmente.
-    setMostrarGabarito(true);
+    // tira uma nova "foto": revela tudo que está respondido agora. Seguro
+    // chamar a qualquer momento e quantas vezes quiser — questões em branco
+    // continuam de fora, sem gabarito e sem contar no placar.
+    setReveladas(new Set(Object.keys(respostas)));
     document.getElementById("resultado")?.scrollIntoView({ behavior: "smooth" });
   }
 
@@ -164,7 +171,7 @@ export default function SimuladoRunner({
       <div className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 space-y-3">
         <div className="flex items-center justify-between text-sm">
           <p className="text-neutral-300">
-            {mostrarGabarito && resultado ? (
+            {resultado ? (
               <>
                 <span className="font-semibold text-neutral-100">
                   {resultado.acertos}/{resultado.totalRespondidas}
@@ -193,11 +200,13 @@ export default function SimuladoRunner({
         <div className="flex flex-wrap gap-1.5">
           {questoes.map((q) => {
             const marcada = !!respostas[q.id];
-            // sem resposta salva, a bolinha fica neutra mesmo com o gabarito já
-            // conferido — não dá pra pintar de "errou" quem nem respondeu ainda.
-            const acertou = mostrarGabarito && marcada && respostas[q.id] === q.gabarito;
+            const foiRevelada = reveladas.has(q.id);
+            // sem resposta salva, ou ainda fora da última "foto" revelada, a
+            // bolinha fica neutra — não dá pra pintar de "errou" quem nem
+            // respondeu, nem quem respondeu depois do último conferir.
+            const acertou = foiRevelada && respostas[q.id] === q.gabarito;
             const cor =
-              mostrarGabarito && marcada
+              foiRevelada
                 ? acertou
                   ? "bg-[#5E9E6F33] text-[#8ec49c] border-[#5E9E6F66]"
                   : "bg-[#E2574C33] text-[#ef8880] border-[#E2574C66]"
@@ -218,7 +227,7 @@ export default function SimuladoRunner({
       </div>
 
       {/* resultado (só depois de conferir) */}
-      {mostrarGabarito && resultado && (
+      {resultado && (
         <div
           id="resultado"
           className="rounded-2xl border border-neutral-800 bg-neutral-900 p-4 space-y-3 scroll-mt-4"
@@ -231,8 +240,9 @@ export default function SimuladoRunner({
             %)
             {resultado.totalRespondidas < total && (
               <span className="ml-2 text-xs font-normal text-neutral-500">
-                — {total - resultado.totalRespondidas} questões ainda em branco, sem gabarito
-                revelado. Pode continuar respondendo normalmente.
+                — {total - resultado.totalRespondidas} questões ainda sem gabarito revelado
+                (em branco ou respondidas depois deste conferir). Pode continuar respondendo
+                normalmente.
               </span>
             )}
           </p>
@@ -256,10 +266,10 @@ export default function SimuladoRunner({
           </ul>
           <div className="border-t border-neutral-800 pt-3">
             <p className="mb-2 text-xs font-medium text-neutral-400">
-              Gabarito oficial (só do que você já respondeu)
+              Gabarito oficial (só do que foi revelado neste conferir)
             </p>
             <div className="flex flex-wrap gap-1.5 font-mono text-[11px]">
-              {questoes.filter((q) => respostas[q.id]).map((q) => (
+              {questoes.filter((q) => reveladas.has(q.id)).map((q) => (
                 <span
                   key={q.id}
                   className="rounded border border-neutral-700 bg-neutral-950 px-1.5 py-0.5 text-neutral-300"
@@ -274,7 +284,7 @@ export default function SimuladoRunner({
         </div>
       )}
 
-      {mostrarGabarito && resultado && (
+      {resultado && (
         <CopiarErrosSimulado simuladoTitulo={simulado.titulo} itens={resultado.itensRevisao} />
       )}
 
@@ -282,10 +292,9 @@ export default function SimuladoRunner({
       <div className="space-y-4">
         {questoes.map((q) => {
           const selecionada = respostas[q.id] ?? null;
-          const jaRespondida = !!selecionada;
-          // só revela/trava questão que já tem resposta salva — uma em branco
-          // continua normal mesmo depois de conferir o gabarito das outras.
-          const revelada = mostrarGabarito && jaRespondida;
+          // só fica revelada/travada a questão que entrou na última "foto" do
+          // conferir — uma respondida depois continua normal até o próximo clique.
+          const revelada = reveladas.has(q.id);
           const acertou = selecionada === q.gabarito;
           const temAnotacao = !!(anotacoes[q.id] ?? "").trim();
           const aberta = anotacaoAberta[q.id] ?? temAnotacao;
@@ -392,15 +401,18 @@ export default function SimuladoRunner({
         })}
       </div>
 
-      {/* rodapé fixo com o botão de conferir */}
-      {!mostrarGabarito && (
+      {/* rodapé fixo com o botão de conferir — nunca some, pode clicar de novo
+          a qualquer momento pra revelar o que respondeu desde o último clique */}
+      {respondidas > 0 && (
         <div className="sticky bottom-4">
           <button
             onClick={conferirGabarito}
-            disabled={pending || respondidas === 0}
+            disabled={pending}
             className="w-full rounded-full bg-[#5E9E6F] px-4 py-3 text-sm font-semibold text-white shadow-lg hover:bg-[#6fb281] disabled:opacity-50"
           >
-            Conferir gabarito ({respondidas}/{total})
+            {jaConferiuAlgumaVez
+              ? `Atualizar gabarito revelado (${respondidas}/${total} respondidas)`
+              : `Conferir gabarito (${respondidas}/${total})`}
           </button>
         </div>
       )}
