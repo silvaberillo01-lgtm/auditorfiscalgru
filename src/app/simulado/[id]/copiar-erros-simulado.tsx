@@ -15,25 +15,27 @@ export type ItemRevisaoSimulado = {
   acertou: boolean;
 };
 
+function blocoQuestao(e: ItemRevisaoSimulado) {
+  const alts = (e.alternativas ?? []).map((a) => `${a.letra}) ${a.texto}`).join("\n");
+  const statusResposta = e.minhaResposta
+    ? `Minha resposta: ${e.minhaResposta} (${e.acertou ? "acertei" : "errei"})`
+    : "Minha resposta: — (não respondida)";
+  const linhas = [
+    `### Questão ${e.numero} — ${e.temaNome}`,
+    e.enunciado ?? "",
+    "",
+    alts,
+    "",
+    statusResposta,
+    `Gabarito: ${e.gabarito ?? "—"}`,
+  ];
+  if (e.explicacao) linhas.push(`Explicação: ${e.explicacao}`);
+  if (e.anotacao) linhas.push(`Minha anotação: ${e.anotacao}`);
+  return linhas.join("\n");
+}
+
 function blocoParaIA(simuladoTitulo: string, itens: ItemRevisaoSimulado[]) {
-  const partes = itens.map((e) => {
-    const alts = (e.alternativas ?? []).map((a) => `${a.letra}) ${a.texto}`).join("\n");
-    const statusResposta = e.minhaResposta
-      ? `Minha resposta: ${e.minhaResposta} (${e.acertou ? "acertei" : "errei"})`
-      : "Minha resposta: — (não respondida)";
-    const linhas = [
-      `### Questão ${e.numero} — ${e.temaNome}`,
-      e.enunciado ?? "",
-      "",
-      alts,
-      "",
-      statusResposta,
-      `Gabarito: ${e.gabarito ?? "—"}`,
-    ];
-    if (e.explicacao) linhas.push(`Explicação: ${e.explicacao}`);
-    if (e.anotacao) linhas.push(`Minha anotação: ${e.anotacao}`);
-    return linhas.join("\n");
-  });
+  const partes = itens.map(blocoQuestao);
 
   const instrucoes = `Sou leigo nesses temas — estou revisando questões de um simulado pra concurso. Algumas eu errei, outras acertei mas anotei alguma coisa na hora porque quero aprofundar mesmo assim. Pra cada questão abaixo:
 
@@ -91,16 +93,21 @@ export default function CopiarErrosSimulado({
       </button>
 
       {aberto && (
-        <ul className="space-y-2 pt-1 border-t border-[#E2574C33]">
+        <ul className="space-y-3 pt-1 border-t border-[#E2574C33]">
           {itens.map((e) => (
             <li key={e.numero} className="text-sm text-neutral-300">
-              <p className="font-medium text-neutral-200">
-                {e.numero}. {e.enunciado}{" "}
+              <p className="mb-1 flex items-center gap-2">
+                <span className="font-medium text-neutral-200">
+                  Questão {e.numero} — {e.temaNome}
+                </span>
                 <span className={e.acertou ? "text-[#8ec49c]" : "text-[#ef8880]"}>
                   ({e.acertou ? "acertou" : "errou"})
                 </span>
               </p>
-              {e.anotacao && <p className="mt-1 text-neutral-400">Sua anotação: {e.anotacao}</p>}
+              {/* Mesmo texto que vai pro clipboard — pra nunca divergir do que "Copiar para IA" gera */}
+              <pre className="whitespace-pre-wrap rounded-lg bg-neutral-950 p-3 text-xs text-neutral-300">
+                {blocoQuestao(e)}
+              </pre>
             </li>
           ))}
         </ul>
